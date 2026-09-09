@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared/shared.dart';
 
+import '../../core/providers.dart';
 import '../auth/auth_providers.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -10,6 +11,8 @@ class ProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final user = ref.watch(currentUserProvider);
+    final email = user?.email ?? '';
 
     return Scaffold(
       appBar: AppBar(title: const Text('Perfil')),
@@ -22,10 +25,18 @@ class ProfileScreen extends ConsumerWidget {
                 size: 72, color: AppColors.primary),
             const SizedBox(height: 16),
             Text(
-              'Cliente',
+              user?.fullName ?? 'Cliente',
               textAlign: TextAlign.center,
               style: theme.textTheme.headlineSmall,
             ),
+            if (email.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text(
+                email,
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodySmall,
+              ),
+            ],
             const SizedBox(height: 32),
             Card(
               child: InkWell(

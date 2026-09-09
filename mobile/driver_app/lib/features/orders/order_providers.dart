@@ -4,13 +4,16 @@ import 'package:shared/shared.dart';
 import '../../core/providers.dart';
 
 /// Pedidos disponibles (PENDING) para aceptar.
+/// Depende de la sesión: al cambiar de usuario (login/logout) se re-ejecuta.
 final availableOrdersProvider = FutureProvider<List<Order>>((ref) async {
+  ref.watch(authSessionProvider);
   final api = ref.watch(apiClientProvider);
   return api.availableOrders();
 });
 
 /// Pedidos asignados a mí.
 final myOrdersProvider = FutureProvider<List<Order>>((ref) async {
+  ref.watch(authSessionProvider);
   final api = ref.watch(apiClientProvider);
   return api.myAssignedOrders();
 });

@@ -136,3 +136,65 @@ def test_customer_cannot_see_others_orders(client: TestClient, auth_headers: dic
     assert login.status_code == 200, login.text
     other_headers = {"Authorization": f"Bearer {login.json()['access_token']}"}
     assert client.get(f"/api/v1/orders/{order['id']}", headers=other_headers).status_code == 403
+
+
+def test_customer_list_is_isolated_per_user(client: TestClient, auth_headers: dict) -> None:
+    """El listado de 'mis pedidos' solo devuelve los del usuario autenticado."""
+    order_a = _create_order(client, auth_headers["customer"])
+
+    client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": "other2@example.com",
+            "full_name": "Other Two",
+            "password": "password123",
+            "role": "CUSTOMER",
+        },
+    )
+    login = client.post(
+        "/api/v1/auth/login", json={"email": "other2@example.com", "password": "password123"}
+    )
+    assert login.status_code == 200, login.text
+    other_headers = {"Authorization": f"Bearer {login.json()['access_token']}"}
+    order_b = _create_order(client, other_headers)
+
+    ids_a = {o["id"] for o in client.get("/api/v1/orders", headers=auth_headers["customer"]).json()}
+    assert order_a["id"] in ids_a
+    assert order_b["id"] not in ids_a
+
+    ids_b = {o["id"] for o in client.get("/api/v1/orders", headers=other_headers).json()}
+    assert order_b["id"] in ids_b
+    assert order_a["id"] not in ids_b
+
+
+def test_driver_cannot_see_detail_of_other_assigned_order(
+    client: TestClient, auth_headers: dict
+) -> None:
+    """Un driver no asignado no puede ver el detalle de un pedido ya aceptado por otro."""
+    order = _create_order(client, auth_headers["customer"])
+    client.post(f"/api/v1/orders/{order['id']}/accept", headers=auth_headers["driver"])
+
+    client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": "driver2@example.com",
+            "full_name": "Driver Two",
+            "password": "password123",
+            "role": "DRIVER",
+        },
+    )
+    login = client.post(
+        "/api/v1/auth/login", json={"email": "driver2@example.com", "password": "password123"}
+    )
+    assert login.status_code == 200, login.text
+    other_driver = {"Authorization": f"Bearer {login.json()['access_token']}"}
+
+    assert client.get(f"/api/v1/orders/{order['id']}", headers=other_driver).status_code == 403
+
+
+def test_driver_can_see_detail_of_pending_available(client: TestClient, auth_headers: dict) -> None:
+    """Un driver puede ver el detalle de un pedido PENDING (disponible para aceptar)."""
+    order = _create_order(client, auth_headers["customer"])
+    resp = client.get(f"/api/v1/orders/{order['id']}", headers=auth_headers["driver"])
+    assert resp.status_code == 200
+    assert resp.json()["status"] == "PENDING"

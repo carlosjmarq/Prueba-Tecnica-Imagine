@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared/shared.dart';
 
 import '../../core/providers.dart';
+import '../orders/order_providers.dart';
 
 /// Notifier que ejecuta login/register y actualiza la sesión.
 class AuthController extends StateNotifier<AsyncValue<User?>> {
@@ -9,13 +10,26 @@ class AuthController extends StateNotifier<AsyncValue<User?>> {
 
   final Ref _ref;
 
+  Future<void> _storeSession(TokenPair pair) async {
+    _ref.read(authSessionProvider.notifier).state = AuthSession(
+      accessToken: pair.accessToken,
+      refreshToken: pair.refreshToken,
+    );
+    try {
+      final api = _ref.read(apiClientProvider);
+      final user = await api.me();
+      _ref.read(currentUserProvider.notifier).state = user;
+    } catch (_) {
+      _ref.read(currentUserProvider.notifier).state = null;
+    }
+  }
+
   Future<bool> login(String email, String password) async {
     state = const AsyncValue.loading();
     try {
       final api = _ref.read(apiClientProvider);
       final pair = await api.login(email, password);
-      _ref.read(authSessionProvider.notifier).state = AuthSession(
-          accessToken: pair.accessToken, refreshToken: pair.refreshToken);
+      await _storeSession(pair);
       state = const AsyncValue.data(null);
       return true;
     } catch (e) {
@@ -39,8 +53,7 @@ class AuthController extends StateNotifier<AsyncValue<User?>> {
         password: password,
         role: role,
       );
-      _ref.read(authSessionProvider.notifier).state = AuthSession(
-          accessToken: pair.accessToken, refreshToken: pair.refreshToken);
+      await _storeSession(pair);
       state = const AsyncValue.data(null);
       return true;
     } catch (e) {
@@ -49,8 +62,20 @@ class AuthController extends StateNotifier<AsyncValue<User?>> {
     }
   }
 
-  void logout() {
+  Future<void> logout() async {
+    final session = _ref.read(authSessionProvider);
+    final refresh = session?.refreshToken;
+    if (refresh != null) {
+      try {
+        await _ref.read(apiClientProvider).logout(refresh);
+      } catch (_) {
+        // si el backend falla, igual limpiamos la sesión local
+      }
+    }
     _ref.read(authSessionProvider.notifier).state = null;
+    _ref.read(currentUserProvider.notifier).state = null;
+    // Invalida datos del usuario anterior para que el siguiente login arranque limpio.
+    _ref.invalidate(myOrdersProvider);
     state = const AsyncValue.data(null);
   }
 }

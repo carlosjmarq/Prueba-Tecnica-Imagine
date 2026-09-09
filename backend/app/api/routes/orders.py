@@ -63,13 +63,13 @@ async def detail(order_id: UUID, user: CurrentUser, session: SessionDep) -> Orde
         raise HTTPException(404, "Pedido no encontrado")
     if user.role == UserRole.CUSTOMER and order.customer_id != user.id:
         raise HTTPException(403, "No puedes ver pedidos de otros usuarios")
-    if (
-        user.role == UserRole.DRIVER
-        and order.driver_id != user.id
-        and order.status == OrderStatus.PENDING
-    ):
-        # el driver puede ver detalle de un pedido disponible (no asignado)
-        pass
+    if user.role == UserRole.DRIVER:
+        # El driver puede ver un pedido PENDING (disponible para aceptar)
+        # o uno que le fue asignado. Cualquier otro pedido ajeno -> 403.
+        es_disponible = order.status == OrderStatus.PENDING
+        es_asignado = order.driver_id == user.id
+        if not (es_disponible or es_asignado):
+            raise HTTPException(403, "No puedes ver pedidos de otros usuarios")
     return _to_read(order)
 
 

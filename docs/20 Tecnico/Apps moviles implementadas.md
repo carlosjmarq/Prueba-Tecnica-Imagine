@@ -21,7 +21,7 @@ date: 2026-09-09
 
 ## Customer App (`mobile/customer_app`)
 
-- **Auth**: Login/Registro con validación y estados de carga/error (login_screen + auth_providers).
+- **Auth**: Login/Registro con validación y estados de carga/error (login_screen + auth_providers). La sesión guarda tokens + `User` (via `/me`); el perfil muestra nombre y email reales.
 - **Home**: bottom nav (Pedidos / Crear / Perfil) con `IndexedStack`.
 - **Pedidos**: lista (pull-to-refresh, chips de estado), detalle (items, historial, cancelar si PENDING), crear (items dinámicos).
 - **Realtime**: `realtimeEventsProvider` escucha el socket e invalida lista/detalle al recibir `order.updated`.
@@ -38,6 +38,17 @@ date: 2026-09-09
 
 URLs por dart-define (nunca hardcodeadas): `--dart-define=API_BASE_URL=http://... --dart-define=WS_URL=ws://...`
 Defaults: `http://127.0.0.1:8000` / `ws://127.0.0.1:8000`.
+
+## Aislamiento de datos entre usuarios (fix)
+
+Bug detectado en pruebas manuales: tras logout + login con otro usuario, la lista de pedidos mostraba datos del usuario anterior. **Causa raíz**: cache de Riverpod (`FutureProvider` sin `autoDispose`) que no se invalidaba al cambiar la sesión.
+
+**Solución**:
+- Los providers de listas/detalle ahora dependen de la sesión: `ref.watch(authSessionProvider)` → se re-ejecutan automáticamente al cambiar de usuario (customer y driver).
+- `logout()` limpia sesión + `currentUserProvider` e invalida los providers de pedidos; además llama a `POST /auth/logout` para revocar el refresh en el backend.
+- El backend ya filtraba por `customer_id`/`driver_id` del JWT; se blindó además el **detalle** de driver (un driver no asignado ya no puede ver pedidos ACCEPTED+ de otros; PENDING sigue visible para aceptar).
+
+**Verificación**: tests de integración nuevos (aislamiento de lista entre usuarios, driver no asignado no ve detalle, driver sí ve PENDING) + flujo E2E real confirmado.
 
 ## Calidad
 

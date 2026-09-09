@@ -4,7 +4,9 @@ import 'package:shared/shared.dart';
 import '../../core/providers.dart';
 
 /// Lista de mis pedidos (customer).
+/// Depende de la sesión: al cambiar de usuario (login/logout) se re-ejecuta.
 final myOrdersProvider = FutureProvider<List<Order>>((ref) async {
+  ref.watch(authSessionProvider);
   final api = ref.watch(apiClientProvider);
   return api.myOrders();
 });
@@ -12,6 +14,7 @@ final myOrdersProvider = FutureProvider<List<Order>>((ref) async {
 /// Detalle de un pedido, actualizable en tiempo real.
 final orderDetailProvider =
     FutureProvider.family<Order, String>((ref, orderId) async {
+  ref.watch(authSessionProvider);
   final api = ref.watch(apiClientProvider);
   return api.orderDetail(orderId);
 });

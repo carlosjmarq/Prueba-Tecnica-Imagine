@@ -4,6 +4,9 @@ import 'package:shared/shared.dart';
 /// Sesión de auth compartida (access + refresh).
 final authSessionProvider = StateProvider<AuthSession?>((ref) => null);
 
+/// Usuario autenticado actual (se puebla tras login/register via /me).
+final currentUserProvider = StateProvider<User?>((ref) => null);
+
 /// Cliente HTTP configurado con el token actual y refresh automático.
 final apiClientProvider = Provider<ApiClient>((ref) {
   return ApiClient(

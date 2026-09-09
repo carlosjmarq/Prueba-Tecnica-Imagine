@@ -193,6 +193,13 @@ class ApiClient {
     return Order.fromJson(res.data!);
   }
 
+  Future<void> logout(String refreshToken) async {
+    await _dio.post<Map<String, dynamic>>(
+      '/api/v1/auth/logout',
+      data: {'refresh_token': refreshToken},
+    );
+  }
+
   Future<String?> _tryRefresh() async {
     final session = _tokenProvider();
     final refresh = session.refreshToken;
