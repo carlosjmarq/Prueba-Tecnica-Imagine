@@ -28,7 +28,11 @@ Instalar y verificar el toolchain ([[Setup y herramientas]]). Salida: tabla de h
 - Monorepo único inicializado ([[ADR-008 Monorepo unico]]) con `git init` y commit base.
 - `AGENTS.md` por carpeta, CI vacío, docker-compose base (`infra/docker-compose.base.yml`).
 - ADRs iniciales en el vault ([[ADR-001 Eleccion de stack]], [[ADR-002 Estructura multi-repositorio]], [[ADR-003 Vault Obsidian como fuente de verdad]], [[ADR-007 Monorepo de apps moviles]], [[ADR-008 Monorepo unico]]).
-- Pendiente de la fase (esqueletos de código): `pyproject.toml` del backend, `flutter create` de las apps, CI vacío.
+- **Esqueletos de código completados**:
+  - Backend: `pyproject.toml` (uv), `app/` (main con `/health`), `tests/`, `Dockerfile` multi-stage, `alembic.ini`, `.env.example`. Validado: ruff, format, mypy y pytest verdes.
+  - Apps: `flutter create` de `customer_app` y `driver_app` (org `com.imagine`), paquete `packages/shared` inicial, patrón feature-first (`core/` + `features/`), Riverpod conectado, `shared` referenciado por path. Validado: `flutter analyze` y `flutter test` verdes en ambas.
+  - CI: `.github/workflows/ci.yml` con jobs por path filter (backend, mobile, infra).
+  - Infra local: Postgres 16 + MinIO levantados vía `docker-compose.base.yml`.
 
 ## Fase 2 — Backend
 

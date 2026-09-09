@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  backend:
+    name: Backend (lint + test)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    if: >-
+      contains(toJson(github.event.commits.*.message), 'backend') ||
+      github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@v4
+      - run: uv sync --group dev --frozen
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run mypy app
+      - run: uv run pytest
+
+  mobile:
+    name: Mobile (analyze + test)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    if: >-
+      contains(toJson(github.event.commits.*.message), 'mobile') ||
+      contains(toJson(github.event.commits.*.message), 'customer') ||
+      contains(toJson(github.event.commits.*.message), 'driver') ||
+      contains(toJson(github.event.commits.*.message), 'shared') ||
+      github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - name: Test customer_app
+        working-directory: mobile/customer_app
+        run: |
+          flutter pub get
+          flutter analyze
+          flutter test
+      - name: Test driver_app
+        working-directory: mobile/driver_app
+        run: |
+          flutter pub get
+          flutter analyze
+          flutter test
+
+  infra:
+    name: Infra (docker compose + validate)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: infra
+    if: >-
+      contains(toJson(github.event.commits.*.message), 'infra') ||
+      contains(toJson(github.event.commits.*.message), 'docker') ||
+      github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate docker-compose
+        run: docker compose -f docker-compose.base.yml config --quiet
+      - uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: 1.12.6
+      - name: Tofu validate (si hay config)
+        run: |
+          if [ -d "terraform" ]; then
+            cd terraform
+            tofu init -backend=false
+            tofu validate
+          else
+            echo "Sin config Terraform aún; skip validate."
+          fi
