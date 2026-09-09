@@ -4,8 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:driver_app/app.dart';
 
 void main() {
-  testWidgets('renders driver app placeholder', (tester) async {
+  testWidgets('renders login screen when not authenticated', (tester) async {
     await tester.pumpWidget(const ProviderScope(child: DriverApp()));
     expect(find.text('Imagine Driver'), findsOneWidget);
+    expect(find.text('Ingresar'), findsOneWidget);
   });
 }

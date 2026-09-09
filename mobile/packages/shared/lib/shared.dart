@@ -1,7 +1,12 @@
 library shared;
 
-/// Paquete compartido de las apps de delivery.
-///
-/// Contendrá: client HTTP (dio), modelos de dominio, manejo de WebSocket
-/// y theme. Cada app (customer_app, driver_app) lo referencia por path.
-library;
+export 'models/models.dart';
+export 'network/api_client.dart';
+export 'network/dio_factory.dart';
+export 'realtime/order_socket.dart';
+export 'theme/app_theme.dart';
+
+/// Formatea un monto como moneda local simple.
+String formatMoney(double amount) {
+  return '\$${amount.toStringAsFixed(2)}';
+}

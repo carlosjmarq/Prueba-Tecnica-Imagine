@@ -18,8 +18,8 @@ date: 2026-09-08
 
 ## Apps Flutter
 
-- [ ] Customer App: Login, Registro, Crear pedido, Lista y detalle de pedidos
-- [ ] Driver App: Login, Lista de pedidos, Aceptar pedido y actualizar estado
+- [x] Customer App: Login, Registro, Crear pedido, Lista y detalle de pedidos ([[Apps moviles implementadas]])
+- [x] Driver App: Login, Lista de pedidos, Aceptar pedido y actualizar estado ([[Apps moviles implementadas]])
 
 ## Base de datos
 

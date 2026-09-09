@@ -1,28 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared/shared.dart';
 
-class CustomerApp extends StatelessWidget {
+import 'features/auth/auth_providers.dart';
+import 'features/auth/login_screen.dart';
+import 'features/home/home_screen.dart';
+
+class CustomerApp extends ConsumerWidget {
   const CustomerApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authed = ref.watch(isAuthenticatedProvider);
+
     return MaterialApp(
       title: 'Imagine Customer',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: const _HomePlaceholder(),
-    );
-  }
-}
-
-class _HomePlaceholder extends StatelessWidget {
-  const _HomePlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(child: Text('Imagine Customer')),
+      theme: buildAppTheme(),
+      home: authed ? const HomeScreen() : const LoginScreen(),
     );
   }
 }

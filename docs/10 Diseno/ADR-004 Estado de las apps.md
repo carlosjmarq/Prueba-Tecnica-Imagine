@@ -16,7 +16,7 @@ Las apps Flutter (Customer y Driver) necesitan manejo de estado: sesión, listas
 
 ## Decisión
 
-Usar **Riverpod** (flutter_riverpod) con patrón feature-first.
+Usar **Riverpod** (flutter_riverpod) con patrón feature-first. El tema visual y los componentes siguen el [[Design System de las apps]] (skill ui-ux-pro-max).
 
 Justificación:
 

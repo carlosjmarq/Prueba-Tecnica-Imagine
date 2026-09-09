@@ -15,7 +15,7 @@ date: 2026-09-08
 | 0    | Setup           | `/setup`              | ✅     |
 | 1    | Fundaciones     | `/foundations`        | ✅     |
 | 2    | Backend         | `/backend`            | ✅     |
-| 3    | Apps móviles    | `/apps`               | ⬜     |
+| 3    | Apps móviles    | `/apps`               | ✅     |
 | 4    | Infraestructura | `/infra`              | ⬜     |
 | 5    | Entrega         | `/deliver`            | ⬜     |
 
@@ -46,7 +46,8 @@ Instalar y verificar el toolchain ([[Setup y herramientas]]). Salida: tabla de h
 ## Fase 3 — Apps móviles
 
 - Customer App y Driver App (login, registro, pedidos, realtime), en `mobile/` ([[ADR-007 Monorepo de apps moviles]]) dentro del monorepo único ([[ADR-008 Monorepo unico]]).
-- Estado Riverpod ([[ADR-004 Estado de las apps]]).
+- Estado Riverpod ([[ADR-004 Estado de las apps]] Aceptado); UI con el [[Design System de las apps]] (ui-ux-pro-max).
+- Estado real: [[Apps moviles implementadas]].
 
 ## Fase 4 — Infraestructura
 
