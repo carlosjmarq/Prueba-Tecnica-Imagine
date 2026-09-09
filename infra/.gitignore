@@ -1,0 +1,27 @@
+# Terraform/OpenTofu
+*.tfstate
+*.tfstate.*
+.terraform/
+crash.log
+tofu.*.backup
+terraform.tfvars
+*.tfvars
+!*.example.tfvars
+
+# Env / secretos
+.env
+.env.*
+*.pem
+*.key
+
+# Docker
+*.log
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Sistema
+Thumbs.db
+.DS_Store

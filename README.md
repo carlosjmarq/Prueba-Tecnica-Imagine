@@ -1,0 +1,67 @@
+# Prueba Técnica Imagine — Plataforma de delivery
+
+Monorepo único `imagine-delivery` (ver [[ADR-008 Monorepo unico]] en el vault):
+backend FastAPI, apps Flutter, infraestructura AWS y documentación en vault Obsidian.
+
+## Estructura
+
+```
+imagine-delivery/
+├── AGENTS.md              # Workflow de IA (fases, convenciones, calidad)
+├── opencode.json          # Config de opencode: skills, agentes, permisos
+├── .opencode/
+│   ├── agent/             # Agentes: backend, mobile, infra, docs
+│   └── command/           # Comandos de fase: /setup /backend /apps /infra ...
+├── .agents/skills/        # Skills del proyecto (npx skills)
+├── backend/               # API FastAPI (app/, alembic/, tests/)
+├── mobile/                # Apps Flutter
+│   ├── customer_app/      #   App del cliente
+│   ├── driver_app/        #   App del repartidor
+│   └── packages/shared/   #   Código compartido
+├── infra/                 # OpenTofu, CI/CD, docker-compose
+├── docs/                  # Vault Obsidian (ADRs, notas técnicas, infra)
+├── scripts/
+│   ├── setup.ps1          # Fase 0: instala el toolchain completo
+│   └── verify.ps1         # Verifica el toolchain
+└── .github/workflows/     # CI con filtros por path
+```
+
+## Fases del proyecto
+
+| # | Fase          | Comando          | Contenido |
+| - | ------------- | ---------------- | --------- |
+| 0 | Setup         | `/setup`         | Toolchain completo (verificado) |
+| 1 | Fundaciones   | `/foundations`   | Esqueleto del monorepo + ADRs iniciales |
+| 2 | Backend       | `/backend`       | Auth JWT, pedidos, estados, WS, S3-ready, tests |
+| 3 | Apps móviles  | `/apps`          | Customer App + Driver App |
+| 4 | Infraestructura | `/infra`       | Terraform AWS, diagrama, GitHub Actions |
+| 5 | Entrega       | `/deliver`       | READMEs, checklist, video |
+
+Estado en `docs/40 Proceso/Fases del proyecto`.
+
+## Primeros pasos
+
+```powershell
+# 1. Verificar/instalar el toolchain (Python, uv, Flutter, Docker, AWS CLI, OpenTofu...)
+powershell -ExecutionPolicy Bypass -File scripts\setup.ps1
+
+# 2. Levantar servicios base (PostgreSQL + MinIO)
+docker compose -f infra\docker-compose.base.yml up -d
+
+# 3. Ejecutar las fases con los comandos de opencode: /foundations, /backend, ...
+```
+
+## Documentación (vault Obsidian)
+
+Toda decisión, funcionalidad e infraestructura se documenta en `docs/` con wikilinks.
+Empezar por `docs/00 Inbox/MOC.md`. ADRs en `docs/10 Diseno/`.
+
+## Skills del proyecto
+
+Instaladas en `.agents/skills/` (gestionadas con `npx skills`): fastapi, fastapi-python,
+fastapi-templates, flutter, sqlalchemy-alembic, websocket-realtime-builder, pytest-skill,
+localstack-deploy, obsidian.
+
+## Prueba técnica
+
+Enunciado y checklist: `docs/40 Proceso/Checklist de la prueba`.

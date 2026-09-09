@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "skills": {
+    "fastapi": {
+      "source": "fastapi/fastapi",
+      "sourceType": "github",
+      "skillPath": "fastapi/.agents/skills/fastapi/SKILL.md",
+      "computedHash": "187b2e06c41cdb6c6beeab15e6db4aeb1bf62f57735974646ad5646af8aacc66"
+    },
+    "fastapi-python": {
+      "source": "mindrally/skills",
+      "sourceType": "github",
+      "skillPath": "fastapi-python/SKILL.md",
+      "computedHash": "4521c6090735152b7b8df670cefe5c1c6d1dcaa115de67bb96e74ebf802d4f24"
+    },
+    "fastapi-templates": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "skillPath": "plugins/api-scaffolding/skills/fastapi-templates/SKILL.md",
+      "computedHash": "e28ca940d4a3a85eaa9150f0d4c0cc36c16de33368963b7f9da5875842b328b4"
+    },
+    "flutter": {
+      "source": "mindrally/skills",
+      "sourceType": "github",
+      "skillPath": "flutter/SKILL.md",
+      "computedHash": "09acbc34217636a5c4d78321cd483338370d2c905f6bbd45e656e2b85cac60fb"
+    },
+    "localstack-deploy": {
+      "source": "localstack/skills",
+      "sourceType": "github",
+      "skillPath": "skills/iac-deployment/SKILL.md",
+      "computedHash": "21d3e4041859a3103c159531ead30bca2547263093477c0671e8fe443dd659fe"
+    },
+    "obsidian": {
+      "source": "synapsync/skills-registry",
+      "sourceType": "github",
+      "skillPath": "cognitives/skills/integrations/obsidian/SKILL.md",
+      "computedHash": "08e0446ea8d22884f0cd2f411f1e91f51b0a3b293faedb52a35b3537eb5f555f"
+    },
+    "pytest-skill": {
+      "source": "lambdatest/agent-skills",
+      "sourceType": "github",
+      "skillPath": "pytest-skill/SKILL.md",
+      "computedHash": "69e4a43bf5a049aae3f387b4f03a08a457c0225b159cb01e91cfbbea2d90e28f"
+    },
+    "sqlalchemy-alembic-expert-best-practices-code-review": {
+      "source": "wispbit-ai/skills",
+      "sourceType": "github",
+      "skillPath": "skills/sqlalchemy-alembic-expert-best-practices-code-review/SKILL.md",
+      "computedHash": "222668fee09abd99945cc57b9be37eb105470ea0428548e7e4f2e7284bd1d8e2"
+    },
+    "websocket-realtime-builder": {
+      "source": "patricio0312rev/skills",
+      "sourceType": "github",
+      "skillPath": "backend/websocket-realtime-builder/SKILL.md",
+      "computedHash": "07a788bf6cd68f0f94ae06f8f71884c2976b4832767d4a928155776a43252d74"
+    }
+  }
+}

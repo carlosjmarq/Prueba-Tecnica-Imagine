@@ -1,0 +1,35 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "instructions": ["AGENTS.md"],
+  "skills": {
+    "paths": [".agents/skills"]
+  },
+  "references": {
+    "vault": {
+      "path": "docs",
+      "description": "Vault Obsidian con toda la documentacion del proyecto: ADRs en 10 Diseno, docs tecnicos en 20 Tecnico, infraestructura en 30 Infraestructura, proceso en 40 Proceso. Consultar antes de implementar y actualizar al cerrar cada tarea."
+    }
+  },
+  "permission": {
+    "bash": {
+      "git *": "allow",
+      "docker *": "allow",
+      "docker-compose *": "allow",
+      "npx skills *": "allow",
+      "uv *": "allow",
+      "pip *": "allow",
+      "flutter *": "allow",
+      "dart *": "allow",
+      "alembic *": "allow",
+      "pytest *": "allow",
+      "aws *": "allow",
+      "terraform *": "allow",
+      "gh *": "allow",
+      "*": "ask"
+    },
+    "external_directory": {
+      "C:/Users/carlo/AppData/Local/Temp/opencode/**": "allow",
+      "*": "ask"
+    }
+  }
+}

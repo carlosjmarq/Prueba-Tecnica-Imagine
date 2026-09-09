@@ -1,0 +1,57 @@
+# ===== Meta (monorepo imagine-delivery) =====
+# Todo el proyecto vive en un único repo git (ADR-008).
+
+# ===== Entornos y secretos =====
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ===== Python (backend) =====
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+*.egg-info/
+dist/
+build/
+
+# ===== Flutter/Dart (mobile) =====
+.dart_tool/
+mobile/*/.dart_tool/
+mobile/*/build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.flutter-misc
+
+# ===== Terraform/OpenTofu (infra) =====
+*.tfstate
+*.tfstate.*
+.terraform/
+crash.log
+tofu.*.backup
+terraform.tfvars
+*.tfvars
+!*.example.tfvars
+
+# ===== Obsidian (docs) =====
+docs/.obsidian/workspace.json
+docs/.obsidian/workspace-mobile.json
+docs/.obsidian/cache
+docs/.trash/
+
+# ===== IDE =====
+.idea/
+.vscode/
+*.swp
+*.iml
+
+# ===== Sistema =====
+Thumbs.db
+.DS_Store

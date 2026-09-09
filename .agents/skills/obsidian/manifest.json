@@ -1,0 +1,176 @@
+{
+  "$schema": "https://synapsync.dev/schemas/cognitive-manifest.json",
+  "name": "obsidian",
+  "type": "skill",
+  "version": "4.1.0",
+  "description": "Unified Obsidian vault manager: sync documents, read notes, and search knowledge",
+  "author": {
+    "name": "SynapSync",
+    "url": "https://github.com/SynapSync",
+    "email": "hello@synapsync.dev"
+  },
+  "license": "Apache-2.0",
+  "category": "integrations",
+  "tags": [
+    "obsidian",
+    "sync",
+    "read",
+    "search",
+    "vault",
+    "filesystem-fallback",
+    "knowledge-base",
+    "notes",
+    "markdown"
+  ],
+  "providers": ["claude"],
+  "file": "SKILL.md",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SynapSync/skills-registry"
+  },
+  "homepage": "https://synapsync.dev/cognitives/obsidian",
+  "assets": {
+    "modes": 2,
+    "helpers": 4
+  },
+  "changelog": [
+    {
+      "version": "4.1.0",
+      "date": "2026-03-06",
+      "changes": [
+        "Add `agents` field to universal frontmatter schema — tracks AI model names (e.g., claude-opus-4-6, gpt-4o, codex, grok) that created or modified the document",
+        "Update frontmatter-generator with agents field generation, merge rule (append, never remove), and examples",
+        "Update obsidian-md-standard extended fields table with agents definition"
+      ]
+    },
+    {
+      "version": "4.0.0",
+      "date": "2026-03-03",
+      "changes": [
+        "Breaking: Remove MCP dependency entirely — filesystem-only operation",
+        "Rewrite SYNC.md to filesystem-only workflow (no dual MCP/fallback branches)",
+        "Rewrite READ.md to filesystem-only workflow (Grep replaces search_notes, Read/Glob replace list/read MCP tools)",
+        "Delete tool-reference.md (MCP tool contracts no longer needed)",
+        "Remove ToolSearch from allowed-tools",
+        "Remove RULE 0 (SKILL BEFORE MCP) and RULE 1 (DETECT ACCESS MODE) — no longer applicable",
+        "Renumber remaining rules (1-4)",
+        "Add Edit tool to allowed-tools for partial note updates",
+        "Update description: filesystem-based, no MCP required"
+      ]
+    },
+    {
+      "version": "3.9.0",
+      "date": "2026-03-03",
+      "changes": [
+        "Remove sprint-forge from Integration table — sprint-forge no longer delegates to obsidian",
+        "Remove AGENTS.md branded block dependency for vault_destination — resolved at runtime via SYNC mode Step 3",
+        "Remove sprint-forge from SYNC.md staging-aware producer list"
+      ]
+    },
+    {
+      "version": "3.8.0",
+      "date": "2026-02-21",
+      "changes": [
+        "Expanded auto_invoke patterns for broader trigger matching (EN/ES, SYNC/READ)",
+        "Added RULE 0 — SKILL BEFORE MCP guardrail to prevent direct MCP tool calls",
+        "Added Cross-Skill Invocation section with 3-priority invocation guide"
+      ]
+    },
+    {
+      "version": "3.7.0",
+      "date": "2026-02-21",
+      "changes": [
+        "Add Quick Start section with mode-specific asset references"
+      ]
+    },
+    {
+      "version": "3.6.0",
+      "date": "2026-02-20",
+      "changes": [
+        "Mode-gated lazy asset loading — agents only read assets for the active mode (SYNC or READ)",
+        "New Asset Loading (Mode-Gated) section with explicit Do NOT Read column",
+        "Extracted Tool Dependencies to assets/helpers/tool-reference.md (on-demand loading)",
+        "Mode Workflows use imperative 'Assets to read now' instead of passive references",
+        "Removed changelog from SKILL.md frontmatter (canonical source: manifest.json)",
+        "Removed Version History section from SKILL.md body"
+      ]
+    },
+    {
+      "version": "3.5.0",
+      "date": "2026-02-19",
+      "changes": [
+        "Branded AGENTS.md block support — vault_destination config persisted in synapsync-skills Configuration table",
+        "New vault_destination config key remembered across sessions (no re-prompting)"
+      ]
+    },
+    {
+      "version": "3.4.0",
+      "date": "2026-02-17",
+      "changes": [
+        "Migrated to deterministic staging convention (.agents/staging/)",
+        "Renamed {output_base} to {output_dir} for consistency across all skills",
+        "Added batch-move-from-staging workflow to SYNC mode",
+        "Updated Configuration Resolution to staging-aware pattern"
+      ]
+    },
+    {
+      "version": "3.3.0",
+      "date": "2026-02-14",
+      "changes": [
+        "SYNC mode filesystem fallback: full self-sufficiency without MCP",
+        "Added Step 0 access mode detection to SYNC (mirrors READ pattern)",
+        "Added YAML serialization guidance for filesystem write operations",
+        "Updated cross-ref-validator with filesystem fallback paths",
+        "Updated batch-sync-pattern with filesystem fallback paths",
+        "Updated priority-ranking Metadata Fast Path with filesystem fallback",
+        "MCP changed from hard dependency to optional (recommended)",
+        "Updated SKILL.md Rule 1 to conditional access mode detection"
+      ]
+    },
+    {
+      "version": "3.2.0",
+      "date": "2026-02-13",
+      "changes": [
+        "Full MCP tool coherence: all 13 Obsidian MCP tools documented and integrated (was 7)",
+        "Added 6 missing tools: delete_note, patch_note, update_frontmatter, get_frontmatter, get_notes_info, move_note",
+        "Fixed manage_tags parameter mismatch (operation not action, note-level not vault-level)",
+        "Documented write_note mode parameter (overwrite/append/prepend)",
+        "Documented search_notes and read_multiple_notes extended parameters",
+        "Optimized cross-ref-validator with update_frontmatter (no full read+write)",
+        "Optimized priority-ranking with get_notes_info metadata fast path",
+        "Added optional archive/delete and move/reorganize workflows to SYNC mode"
+      ]
+    },
+    {
+      "version": "3.1.0",
+      "date": "2026-02-13",
+      "changes": [
+        "Audit remediation: 12 findings across 3 priority levels",
+        "Added i18n documentation for bilingual (EN/ES) design",
+        "Added Tool Dependencies section with MCP tool parameter contracts",
+        "Reconciled type taxonomy to 14 types (removed note, meeting, reference)",
+        "Added ambiguous intent disambiguation step in mode detection",
+        "Slimmed assets/README.md from 299 to 27 lines",
+        "Added batch size limits (max 20 files per batch)",
+        "Added Windows path support in fallback vault discovery",
+        "Added negative weights for superseded/archived in priority ranking",
+        "Versioned the Obsidian markdown standard (v1.0)",
+        "Clarified cognitive.config.json schema and mcp__obsidian__write_note contract"
+      ]
+    },
+    {
+      "version": "3.0.0",
+      "date": "2026-02-12",
+      "changes": [
+        "Consolidated obsidian-sync + obsidian-reader into unified skill",
+        "Mode-based architecture: SYNC (write) + READ (read/search)",
+        "Progressive disclosure pattern for efficient context usage",
+        "4 shared helpers extracted to assets/helpers/",
+        "Reduced total LOC by eliminating duplication",
+        "Breaking change: replaces obsidian-sync v2.1.0 and obsidian-reader v1.2.0"
+      ]
+    }
+  ],
+  "createdAt": "2026-02-12T00:00:00Z",
+  "updatedAt": "2026-03-06T00:00:00Z"
+}

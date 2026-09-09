@@ -1,0 +1,21 @@
+# Flutter/Dart
+.dart_tool/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.flutter-misc
+
+# Env / config local
+.env
+.env.*
+*.dart-define
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.iml
+
+# Sistema
+Thumbs.db
+.DS_Store

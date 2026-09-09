@@ -1,0 +1,9 @@
+# Obsidian
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/cache
+.trash/
+
+# Sistema
+Thumbs.db
+.DS_Store

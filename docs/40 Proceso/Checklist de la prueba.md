@@ -1,0 +1,59 @@
+---
+tags: [proceso, checklist, entrega]
+status: borrador
+date: 2026-09-08
+---
+
+# Checklist de la prueba
+
+> Checklist oficial contra el enunciado de la prueba técnica. Estado actualizado en la Fase 5 ([[Fases del proyecto]]).
+
+## Requerimientos funcionales
+
+- [ ] Autenticación JWT para Customer y Driver ([[API Autenticacion]])
+- [ ] Customer: crear pedidos, consultar pedidos y ver estado ([[API Pedidos y estados]])
+- [ ] Driver: listar pedidos disponibles, aceptar pedidos y actualizar estado
+- [ ] Estados: Pending, Accepted, Picked Up, Delivered y Cancelled ([[Modelo de datos]])
+- [ ] Notificación realtime de cambios de estado (WS/SSE) ([[Realtime]])
+
+## Apps Flutter
+
+- [ ] Customer App: Login, Registro, Crear pedido, Lista y detalle de pedidos
+- [ ] Driver App: Login, Lista de pedidos, Aceptar pedido y actualizar estado
+
+## Base de datos
+
+- [ ] Modelo relacional PostgreSQL con migraciones Alembic ([[Modelo de datos]])
+
+## Infraestructura cloud (obligatorio)
+
+- [ ] README explica cómo desplegar PostgreSQL en AWS RDS (instancia, backups, HA) ([[RDS PostgreSQL]])
+- [ ] StorageService para imágenes: siempre S3 (MinIO en dev, AWS S3 en prod) ([[StorageService]])
+- [ ] Diagrama de arquitectura: EC2, RDS, S3, CloudFront, Load Balancer, WebSocket, Security Groups ([[Arquitectura AWS]])
+- [ ] Proyecto dockerizado ([[Docker y despliegue]])
+
+## Puntos extra
+
+- [ ] Rate Limiting ([[API Autenticacion]])
+- [ ] Refresh Tokens ([[API Autenticacion]])
+- [ ] Tests automatizados ([[Testing y calidad]])
+- [ ] Swagger documentado (`/docs`)
+- [ ] GitHub Actions ([[Docker y despliegue]])
+- [ ] Deploy
+- [ ] Carga real a AWS S3 ([[S3 y CloudFront]])
+- [ ] Proceso Lambda identificado y justificado ([[Lambda]])
+- [ ] Uso de CloudFront explicado ([[S3 y CloudFront]])
+- [ ] Logging estructurado + monitoreo CloudWatch ([[CloudWatch y logging]])
+
+## Entregables
+
+- [ ] Repositorio(s) Git ([[ADR-002 Estructura multi-repositorio]])
+- [ ] README con instrucciones (cada repo)
+- [ ] Migraciones
+- [ ] Diagrama de arquitectura
+- [ ] Video opcional ≤ 5 min ([[Guion video]])
+
+## Relaciones
+
+- **MOC:** [[00 Inbox/MOC]]
+- **Relacionada con:** [[Fases del proyecto]], [[Guion video]]
