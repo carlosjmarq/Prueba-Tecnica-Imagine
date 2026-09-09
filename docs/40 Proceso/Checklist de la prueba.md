@@ -10,11 +10,11 @@ date: 2026-09-08
 
 ## Requerimientos funcionales
 
-- [ ] Autenticación JWT para Customer y Driver ([[API Autenticacion]])
-- [ ] Customer: crear pedidos, consultar pedidos y ver estado ([[API Pedidos y estados]])
-- [ ] Driver: listar pedidos disponibles, aceptar pedidos y actualizar estado
-- [ ] Estados: Pending, Accepted, Picked Up, Delivered y Cancelled ([[Modelo de datos]])
-- [ ] Notificación realtime de cambios de estado (WS/SSE) ([[Realtime]])
+- [x] Autenticación JWT para Customer y Driver ([[API Autenticacion]])
+- [x] Customer: crear pedidos, consultar pedidos y ver estado ([[API Pedidos y estados]])
+- [x] Driver: listar pedidos disponibles, aceptar pedidos y actualizar estado
+- [x] Estados: Pending, Accepted, Picked Up, Delivered y Cancelled ([[Modelo de datos]])
+- [x] Notificación realtime de cambios de estado (WS/SSE) ([[Realtime]])
 
 ## Apps Flutter
 
@@ -23,7 +23,7 @@ date: 2026-09-08
 
 ## Base de datos
 
-- [ ] Modelo relacional PostgreSQL con migraciones Alembic ([[Modelo de datos]])
+- [x] Modelo relacional PostgreSQL con migraciones Alembic ([[Modelo de datos]])
 
 ## Infraestructura cloud (obligatorio)
 

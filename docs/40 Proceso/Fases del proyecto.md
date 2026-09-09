@@ -14,7 +14,7 @@ date: 2026-09-08
 | ---- | --------------- | --------------------- | ------ |
 | 0    | Setup           | `/setup`              | ✅     |
 | 1    | Fundaciones     | `/foundations`        | ✅     |
-| 2    | Backend         | `/backend`            | ⬜     |
+| 2    | Backend         | `/backend`            | ✅     |
 | 3    | Apps móviles    | `/apps`               | ⬜     |
 | 4    | Infraestructura | `/infra`              | ⬜     |
 | 5    | Entrega         | `/deliver`            | ⬜     |
@@ -36,11 +36,12 @@ Instalar y verificar el toolchain ([[Setup y herramientas]]). Salida: tabla de h
 
 ## Fase 2 — Backend
 
-- Auth JWT + refresh ([[API Autenticacion]]).
+- Auth JWT + refresh con rotación y revocación ([[API Autenticacion]]).
 - Pedidos y máquina de estados ([[API Pedidos y estados]], [[Modelo de datos]]).
-- Realtime WebSocket ([[Realtime]], [[ADR-005 Realtime WebSocket vs SSE]]).
-- StorageService S3-ready ([[StorageService]]).
-- Rate limiting, logging JSON, Alembic, Swagger, tests ([[Testing y calidad]]).
+- Realtime WebSocket con ConnectionManager y rooms ([[Realtime]], [[ADR-005 Realtime WebSocket vs SSE]] Aceptado).
+- StorageService S3 siempre (MinIO en dev) ([[StorageService]]).
+- Rate limiting (slowapi), logging JSON (structlog), Alembic aplicado, Swagger `/docs`, tests ([[Testing y calidad]]).
+- Estado real: [[API Implementada]]. ADR-004 Aceptado.
 
 ## Fase 3 — Apps móviles
 

@@ -8,7 +8,7 @@ date: 2026-09-08
 
 ## Status
 
-**Propuesto**
+**Aceptado**
 
 ## Contexto
 
