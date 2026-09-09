@@ -61,6 +61,7 @@ date: 2026-09-09
 - PostgreSQL del contenedor en **puerto 5434** (5432 y 5433 los ocupa un Postgres local de Windows — ver [[Setup y herramientas]]).
 - MinIO en `localhost:9000` (consola `:9001`, minioadmin).
 - Migración inicial: `alembic upgrade head` (5 tablas).
+- Levantar todo: `scripts/dev.ps1` (infra + migraciones + API). Probar con la colección de Insomnia en `scripts/insomnia/delivery-api-insomnia.json`.
 
 ## Relaciones
 

@@ -22,7 +22,9 @@ imagine-delivery/
 ├── docs/                  # Vault Obsidian (ADRs, notas técnicas, infra)
 ├── scripts/
 │   ├── setup.ps1          # Fase 0: instala el toolchain completo
-│   └── verify.ps1         # Verifica el toolchain
+│   ├── dev.ps1            # Levanta todo el proyecto (infra + migraciones + API)
+│   ├── verify.ps1         # Verifica el toolchain
+│   └── insomnia/          # Colección de Insomnia para probar la API
 └── .github/workflows/     # CI con filtros por path
 ```
 
@@ -45,11 +47,14 @@ Estado en `docs/40 Proceso/Fases del proyecto`.
 # 1. Verificar/instalar el toolchain (Python, uv, Flutter, Docker, AWS CLI, OpenTofu...)
 powershell -ExecutionPolicy Bypass -File scripts\setup.ps1
 
-# 2. Levantar servicios base (PostgreSQL + MinIO)
-docker compose -f infra\docker-compose.base.yml up -d
+# 2. Levantar TODO el proyecto (Postgres + MinIO + migraciones + API)
+powershell -ExecutionPolicy Bypass -File scripts\dev.ps1          # con hot reload: -Reload
+#   Detener todo: powershell -ExecutionPolicy Bypass -File scripts\dev.ps1 -Stop
 
-# 3. Ejecutar las fases con los comandos de opencode: /foundations, /backend, ...
+# 3. Ejecutar las fases con los comandos de opencode: /backend, /apps, ...
 ```
+
+La API queda en `http://127.0.0.1:8000` (Swagger en `/docs`). Para probar los endpoints con Insomnia, importar `scripts/insomnia/delivery-api-insomnia.json` (colección con request chaining: el login alimenta el token de los pedidos).
 
 ## Documentación (vault Obsidian)
 

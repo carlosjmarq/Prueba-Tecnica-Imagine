@@ -47,7 +47,17 @@ Levantar servicios base con Docker Compose (PostgreSQL 16 + MinIO):
 docker compose -f infra/docker-compose.base.yml up -d
 ```
 
+O **levantar todo el proyecto de una vez** (infra + migraciones + API en `:8000`):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/dev.ps1     # -Reload para hot reload
+powershell -ExecutionPolicy Bypass -File scripts/dev.ps1 -Stop   # detiene todo
+```
+
 Probar S3 local con MinIO: `http://localhost:9001` (consola, minioadmin/minioadmin).
+
+Colección de Insomnia para probar la API: importar `scripts/insomnia/delivery-api-insomnia.json`
+(login alimenta el token de las requests de pedidos automáticamente).
 
 ## Estado actual
 
