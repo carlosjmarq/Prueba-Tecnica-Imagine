@@ -13,7 +13,7 @@ date: 2026-09-08
 | Fase | Nombre          | Comando opencode      | Estado |
 | ---- | --------------- | --------------------- | ------ |
 | 0    | Setup           | `/setup`              | ✅     |
-| 1    | Fundaciones     | `/foundations`        | ⬜     |
+| 1    | Fundaciones     | `/foundations`        | ✅     |
 | 2    | Backend         | `/backend`            | ⬜     |
 | 3    | Apps móviles    | `/apps`               | ⬜     |
 | 4    | Infraestructura | `/infra`              | ⬜     |
@@ -25,9 +25,10 @@ Instalar y verificar el toolchain ([[Setup y herramientas]]). Salida: tabla de h
 
 ## Fase 1 — Fundaciones
 
-- `git init` en los 4 repos ([[ADR-002 Estructura multi-repositorio]]).
-- `AGENTS.md` por repo, CI vacío, docker-compose base.
-- ADRs iniciales en el vault ([[ADR-001 Eleccion de stack]], [[ADR-002 Estructura multi-repositorio]], [[ADR-003 Vault Obsidian como fuente de verdad]]).
+- Monorepo único inicializado ([[ADR-008 Monorepo unico]]) con `git init` y commit base.
+- `AGENTS.md` por carpeta, CI vacío, docker-compose base (`infra/docker-compose.base.yml`).
+- ADRs iniciales en el vault ([[ADR-001 Eleccion de stack]], [[ADR-002 Estructura multi-repositorio]], [[ADR-003 Vault Obsidian como fuente de verdad]], [[ADR-007 Monorepo de apps moviles]], [[ADR-008 Monorepo unico]]).
+- Pendiente de la fase (esqueletos de código): `pyproject.toml` del backend, `flutter create` de las apps, CI vacío.
 
 ## Fase 2 — Backend
 
