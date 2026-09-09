@@ -1,399 +1,372 @@
 ﻿{
-    "_type":  "export",
-    "__export_format":  4,
-    "__export_source":  "insomnia.desktop.app:v2024.1.0",
-    "__export_created_at":  "2026-09-09T00:00:00.000Z",
-    "__export_updated_at":  "2026-09-09T00:00:00.000Z",
-    "resources":  [
-                      {
-                          "_id":  "wrk_delivery_api",
-                          "_type":  "workspace",
-                          "name":  "Delivery API - Prueba Tecnica Imagine",
-                          "scope":  "collection"
-                      },
-                      {
-                          "_id":  "env_base",
-                          "_type":  "environment",
-                          "parentId":  "wrk_delivery_api",
-                          "name":  "Base Environment",
-                          "data":  {
-                                       "base_url":  "http://127.0.0.1:8000",
-                                       "ws_url":  "ws://127.0.0.1:8000",
-                                       "customer_email":  "cliente@test.com",
-                                       "customer_password":  "password123",
-                                       "driver_email":  "repartidor@test.com",
-                                       "driver_password":  "password123",
-                                       "order_id":  ""
-                                   },
-                          "dataPropertyOrder":  {
-                                                    "\u0026":  [
-                                                                   "base_url",
-                                                                   "ws_url",
-                                                                   "customer_email",
-                                                                   "customer_password",
-                                                                   "driver_email",
-                                                                   "driver_password",
-                                                                   "order_id"
-                                                               ]
-                                                }
-                      },
-                      {
-                          "_id":  "grp_auth",
-                          "_type":  "request_group",
-                          "parentId":  "wrk_delivery_api",
-                          "name":  "Auth"
-                      },
-                      {
-                          "_id":  "grp_orders_customer",
-                          "_type":  "request_group",
-                          "parentId":  "wrk_delivery_api",
-                          "name":  "Pedidos - Customer"
-                      },
-                      {
-                          "_id":  "grp_orders_driver",
-                          "_type":  "request_group",
-                          "parentId":  "wrk_delivery_api",
-                          "name":  "Pedidos - Driver"
-                      },
-                      {
-                          "_id":  "grp_uploads",
-                          "_type":  "request_group",
-                          "parentId":  "wrk_delivery_api",
-                          "name":  "Uploads"
-                      },
-                      {
-                          "_id":  "grp_realtime",
-                          "_type":  "request_group",
-                          "parentId":  "wrk_delivery_api",
-                          "name":  "Realtime (WebSocket)"
-                      },
-                      {
-                          "_id":  "req_register_customer",
-                          "_type":  "request",
-                          "parentId":  "grp_auth",
-                          "name":  "Register Customer",
-                          "method":  "POST",
-                          "url":  "{{ _.base_url }}/api/v1/auth/register",
-                          "body":  {
-                                       "mimeType":  "application/json",
-                                       "text":  "{\n\t\"email\": \"{{ _.customer_email }}\",\n\t\"full_name\": \"Cliente Uno\",\n\t\"password\": \"{{ _.customer_password }}\",\n\t\"role\": \"CUSTOMER\"\n}"
-                                   },
-                          "authentication":  {
+  "_type": "export",
+  "__export_format": 4,
+  "__export_source": "insomnia.desktop.app:v2024.1.0",
+  "__export_created_at": "2026-09-09T00:00:00.000Z",
+  "__export_updated_at": "2026-09-09T00:00:00.000Z",
+  "resources": [
+    {
+      "_id": "wrk_delivery_api",
+      "_type": "workspace",
+      "name": "Delivery API - Prueba Tecnica Imagine",
+      "scope": "collection"
+    },
+    {
+      "_id": "env_base",
+      "_type": "environment",
+      "parentId": "wrk_delivery_api",
+      "name": "Base Environment",
+      "data": {
+        "base_url": "http://127.0.0.1:8000",
+        "ws_url": "ws://127.0.0.1:8000",
+        "customer_email": "cliente@test.com",
+        "customer_password": "password123",
+        "driver_email": "repartidor@test.com",
+        "driver_password": "password123",
+        "order_id": ""
+      },
+      "dataPropertyOrder": {
+        "&": [
+          "base_url",
+          "ws_url",
+          "customer_email",
+          "customer_password",
+          "driver_email",
+          "driver_password",
+          "order_id"
+        ]
+      }
+    },
+    {
+      "_id": "grp_auth",
+      "_type": "request_group",
+      "parentId": "wrk_delivery_api",
+      "name": "Auth"
+    },
+    {
+      "_id": "grp_orders_customer",
+      "_type": "request_group",
+      "parentId": "wrk_delivery_api",
+      "name": "Pedidos - Customer"
+    },
+    {
+      "_id": "grp_orders_driver",
+      "_type": "request_group",
+      "parentId": "wrk_delivery_api",
+      "name": "Pedidos - Driver"
+    },
+    {
+      "_id": "grp_uploads",
+      "_type": "request_group",
+      "parentId": "wrk_delivery_api",
+      "name": "Uploads"
+    },
+    {
+      "_id": "grp_realtime",
+      "_type": "request_group",
+      "parentId": "wrk_delivery_api",
+      "name": "Realtime (WebSocket)"
+    },
 
-                                             },
-                          "headers":  [
-                                          {
-                                              "name":  "Content-Type",
-                                              "value":  "application/json"
-                                          }
-                                      ]
-                      },
-                      {
-                          "_id":  "req_register_driver",
-                          "_type":  "request",
-                          "parentId":  "grp_auth",
-                          "name":  "Register Driver",
-                          "method":  "POST",
-                          "url":  "{{ _.base_url }}/api/v1/auth/register",
-                          "body":  {
-                                       "mimeType":  "application/json",
-                                       "text":  "{\n\t\"email\": \"{{ _.driver_email }}\",\n\t\"full_name\": \"Repartidor Uno\",\n\t\"password\": \"{{ _.driver_password }}\",\n\t\"role\": \"DRIVER\"\n}"
-                                   },
-                          "authentication":  {
+    {
+      "_id": "req_register_customer",
+      "_type": "request",
+      "parentId": "grp_auth",
+      "name": "register_customer",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/v1/auth/register",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n\t\"email\": \"{{ _.customer_email }}\",\n\t\"full_name\": \"Cliente Uno\",\n\t\"password\": \"{{ _.customer_password }}\",\n\t\"role\": \"CUSTOMER\"\n}"
+      },
+      "authentication": {},
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ]
+    },
+    {
+      "_id": "req_register_driver",
+      "_type": "request",
+      "parentId": "grp_auth",
+      "name": "register_driver",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/v1/auth/register",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n\t\"email\": \"{{ _.driver_email }}\",\n\t\"full_name\": \"Repartidor Uno\",\n\t\"password\": \"{{ _.driver_password }}\",\n\t\"role\": \"DRIVER\"\n}"
+      },
+      "authentication": {},
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ]
+    },
+    {
+      "_id": "req_login_customer",
+      "_type": "request",
+      "parentId": "grp_auth",
+      "name": "login_customer",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/v1/auth/login",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n\t\"email\": \"{{ _.customer_email }}\",\n\t\"password\": \"{{ _.customer_password }}\"\n}"
+      },
+      "authentication": {},
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "settings": {
+        "storeLastResponse": true
+      }
+    },
+    {
+      "_id": "req_login_driver",
+      "_type": "request",
+      "parentId": "grp_auth",
+      "name": "login_driver",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/v1/auth/login",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n\t\"email\": \"{{ _.driver_email }}\",\n\t\"password\": \"{{ _.driver_password }}\"\n}"
+      },
+      "authentication": {},
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "settings": {
+        "storeLastResponse": true
+      }
+    },
+    {
+      "_id": "req_refresh",
+      "_type": "request",
+      "parentId": "grp_auth",
+      "name": "refresh_token",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/v1/auth/refresh",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n\t\"refresh_token\": \"{{ _.login_customer.response.body.refresh_token }}\"\n}"
+      },
+      "authentication": {},
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ]
+    },
+    {
+      "_id": "req_logout",
+      "_type": "request",
+      "parentId": "grp_auth",
+      "name": "logout",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/v1/auth/logout",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n\t\"refresh_token\": \"{{ _.login_customer.response.body.refresh_token }}\"\n}"
+      },
+      "authentication": {},
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ]
+    },
+    {
+      "_id": "req_me",
+      "_type": "request",
+      "parentId": "grp_auth",
+      "name": "me",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/v1/auth/me",
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.login_customer.response.body.access_token }}"
+      },
+      "headers": []
+    },
 
-                                             },
-                          "headers":  [
-                                          {
-                                              "name":  "Content-Type",
-                                              "value":  "application/json"
-                                          }
-                                      ]
-                      },
-                      {
-                          "_id":  "req_login_customer",
-                          "_type":  "request",
-                          "parentId":  "grp_auth",
-                          "name":  "Login Customer",
-                          "method":  "POST",
-                          "url":  "{{ _.base_url }}/api/v1/auth/login",
-                          "body":  {
-                                       "mimeType":  "application/json",
-                                       "text":  "{\n\t\"email\": \"{{ _.customer_email }}\",\n\t\"password\": \"{{ _.customer_password }}\"\n}"
-                                   },
-                          "authentication":  {
+    {
+      "_id": "req_create_order",
+      "_type": "request",
+      "parentId": "grp_orders_customer",
+      "name": "crear_pedido",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/v1/orders",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n\t\"pickup_address\": \"Cra 7 #12-34\",\n\t\"delivery_address\": \"Cll 45 #5-67\",\n\t\"notes\": \"Dejar en porteria\",\n\t\"items\": [\n\t\t{\n\t\t\t\"name\": \"Pizza\",\n\t\t\t\"price\": 10,\n\t\t\t\"quantity\": 2\n\t\t},\n\t\t{\n\t\t\t\"name\": \"Bebida\",\n\t\t\t\"price\": 2.5,\n\t\t\t\"quantity\": 1\n\t\t}\n\t]\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.login_customer.response.body.access_token }}"
+      },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ]
+    },
+    {
+      "_id": "req_list_orders",
+      "_type": "request",
+      "parentId": "grp_orders_customer",
+      "name": "listar_pedidos",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/v1/orders",
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.login_customer.response.body.access_token }}"
+      },
+      "headers": []
+    },
+    {
+      "_id": "req_order_detail",
+      "_type": "request",
+      "parentId": "grp_orders_customer",
+      "name": "detalle_pedido",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/v1/orders/{{ _.order_id }}",
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.login_customer.response.body.access_token }}"
+      },
+      "headers": []
+    },
+    {
+      "_id": "req_cancel_order",
+      "_type": "request",
+      "parentId": "grp_orders_customer",
+      "name": "cancelar_pedido",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/v1/orders/{{ _.order_id }}/cancel",
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.login_customer.response.body.access_token }}"
+      },
+      "headers": []
+    },
 
-                                             },
-                          "headers":  [
-                                          {
-                                              "name":  "Content-Type",
-                                              "value":  "application/json"
-                                          }
-                                      ],
-                          "settings":  {
-                                           "storeLastResponse":  true
-                                       }
-                      },
-                      {
-                          "_id":  "req_login_driver",
-                          "_type":  "request",
-                          "parentId":  "grp_auth",
-                          "name":  "Login Driver",
-                          "method":  "POST",
-                          "url":  "{{ _.base_url }}/api/v1/auth/login",
-                          "body":  {
-                                       "mimeType":  "application/json",
-                                       "text":  "{\n\t\"email\": \"{{ _.driver_email }}\",\n\t\"password\": \"{{ _.driver_password }}\"\n}"
-                                   },
-                          "authentication":  {
+    {
+      "_id": "req_available_orders",
+      "_type": "request",
+      "parentId": "grp_orders_driver",
+      "name": "pedidos_disponibles",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/v1/orders/available",
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.login_driver.response.body.access_token }}"
+      },
+      "headers": []
+    },
+    {
+      "_id": "req_accept_order",
+      "_type": "request",
+      "parentId": "grp_orders_driver",
+      "name": "aceptar_pedido",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/v1/orders/{{ _.order_id }}/accept",
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.login_driver.response.body.access_token }}"
+      },
+      "headers": []
+    },
+    {
+      "_id": "req_update_status",
+      "_type": "request",
+      "parentId": "grp_orders_driver",
+      "name": "actualizar_estado",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/v1/orders/{{ _.order_id }}/status",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n\t\"status\": \"PICKED_UP\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.login_driver.response.body.access_token }}"
+      },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ]
+    },
+    {
+      "_id": "req_mine_orders",
+      "_type": "request",
+      "parentId": "grp_orders_driver",
+      "name": "mis_pedidos",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/v1/orders/mine",
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.login_driver.response.body.access_token }}"
+      },
+      "headers": []
+    },
 
-                                             },
-                          "headers":  [
-                                          {
-                                              "name":  "Content-Type",
-                                              "value":  "application/json"
-                                          }
-                                      ],
-                          "settings":  {
-                                           "storeLastResponse":  true
-                                       }
-                      },
-                      {
-                          "_id":  "req_refresh",
-                          "_type":  "request",
-                          "parentId":  "grp_auth",
-                          "name":  "Refresh Token",
-                          "method":  "POST",
-                          "url":  "{{ _.base_url }}/api/v1/auth/refresh",
-                          "body":  {
-                                       "mimeType":  "application/json",
-                                       "text":  "{\n\t\"refresh_token\": \"{{ _.login_customer.response.body.refresh_token }}\"\n}"
-                                   },
-                          "authentication":  {
+    {
+      "_id": "req_upload_image",
+      "_type": "request",
+      "parentId": "grp_uploads",
+      "name": "subir_imagen",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/v1/uploads/images",
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.login_customer.response.body.access_token }}"
+      },
+      "headers": [],
+      "body": {
+        "mimeType": "multipart/form-data",
+        "params": [
+          {
+            "name": "file",
+            "fileName": "foto.png",
+            "type": "file"
+          }
+        ]
+      }
+    },
 
-                                             },
-                          "headers":  [
-                                          {
-                                              "name":  "Content-Type",
-                                              "value":  "application/json"
-                                          }
-                                      ]
-                      },
-                      {
-                          "_id":  "req_logout",
-                          "_type":  "request",
-                          "parentId":  "grp_auth",
-                          "name":  "Logout",
-                          "method":  "POST",
-                          "url":  "{{ _.base_url }}/api/v1/auth/logout",
-                          "body":  {
-                                       "mimeType":  "application/json",
-                                       "text":  "{\n\t\"refresh_token\": \"{{ _.login_customer.response.body.refresh_token }}\"\n}"
-                                   },
-                          "authentication":  {
-
-                                             },
-                          "headers":  [
-                                          {
-                                              "name":  "Content-Type",
-                                              "value":  "application/json"
-                                          }
-                                      ]
-                      },
-                      {
-                          "_id":  "req_me",
-                          "_type":  "request",
-                          "parentId":  "grp_auth",
-                          "name":  "Me (perfil actual)",
-                          "method":  "GET",
-                          "url":  "{{ _.base_url }}/api/v1/auth/me",
-                          "authentication":  {
-                                                 "type":  "bearer",
-                                                 "token":  "{{ _.login_customer.response.body.access_token }}"
-                                             },
-                          "headers":  [
-
-                                      ]
-                      },
-                      {
-                          "_id":  "req_create_order",
-                          "_type":  "request",
-                          "parentId":  "grp_orders_customer",
-                          "name":  "Crear pedido",
-                          "method":  "POST",
-                          "url":  "{{ _.base_url }}/api/v1/orders",
-                          "body":  {
-                                       "mimeType":  "application/json",
-                                       "text":  "{\n\t\"pickup_address\": \"Cra 7 #12-34\",\n\t\"delivery_address\": \"Cll 45 #5-67\",\n\t\"notes\": \"Dejar en porteria\",\n\t\"items\": [\n\t\t{\n\t\t\t\"name\": \"Pizza\",\n\t\t\t\"price\": 10,\n\t\t\t\"quantity\": 2\n\t\t},\n\t\t{\n\t\t\t\"name\": \"Bebida\",\n\t\t\t\"price\": 2.5,\n\t\t\t\"quantity\": 1\n\t\t}\n\t]\n}"
-                                   },
-                          "authentication":  {
-                                                 "type":  "bearer",
-                                                 "token":  "{{ _.login_customer.response.body.access_token }}"
-                                             },
-                          "headers":  [
-                                          {
-                                              "name":  "Content-Type",
-                                              "value":  "application/json"
-                                          }
-                                      ]
-                      },
-                      {
-                          "_id":  "req_list_orders",
-                          "_type":  "request",
-                          "parentId":  "grp_orders_customer",
-                          "name":  "Listar mis pedidos",
-                          "method":  "GET",
-                          "url":  "{{ _.base_url }}/api/v1/orders",
-                          "authentication":  {
-                                                 "type":  "bearer",
-                                                 "token":  "{{ _.login_customer.response.body.access_token }}"
-                                             },
-                          "headers":  [
-
-                                      ]
-                      },
-                      {
-                          "_id":  "req_order_detail",
-                          "_type":  "request",
-                          "parentId":  "grp_orders_customer",
-                          "name":  "Detalle de pedido",
-                          "method":  "GET",
-                          "url":  "{{ _.base_url }}/api/v1/orders/{{ _.order_id }}",
-                          "authentication":  {
-                                                 "type":  "bearer",
-                                                 "token":  "{{ _.login_customer.response.body.access_token }}"
-                                             },
-                          "headers":  [
-
-                                      ]
-                      },
-                      {
-                          "_id":  "req_cancel_order",
-                          "_type":  "request",
-                          "parentId":  "grp_orders_customer",
-                          "name":  "Cancelar pedido",
-                          "method":  "POST",
-                          "url":  "{{ _.base_url }}/api/v1/orders/{{ _.order_id }}/cancel",
-                          "authentication":  {
-                                                 "type":  "bearer",
-                                                 "token":  "{{ _.login_customer.response.body.access_token }}"
-                                             },
-                          "headers":  [
-
-                                      ]
-                      },
-                      {
-                          "_id":  "req_available_orders",
-                          "_type":  "request",
-                          "parentId":  "grp_orders_driver",
-                          "name":  "Pedidos disponibles",
-                          "method":  "GET",
-                          "url":  "{{ _.base_url }}/api/v1/orders/available",
-                          "authentication":  {
-                                                 "type":  "bearer",
-                                                 "token":  "{{ _.login_driver.response.body.access_token }}"
-                                             },
-                          "headers":  [
-
-                                      ]
-                      },
-                      {
-                          "_id":  "req_accept_order",
-                          "_type":  "request",
-                          "parentId":  "grp_orders_driver",
-                          "name":  "Aceptar pedido",
-                          "method":  "POST",
-                          "url":  "{{ _.base_url }}/api/v1/orders/{{ _.order_id }}/accept",
-                          "authentication":  {
-                                                 "type":  "bearer",
-                                                 "token":  "{{ _.login_driver.response.body.access_token }}"
-                                             },
-                          "headers":  [
-
-                                      ]
-                      },
-                      {
-                          "_id":  "req_update_status",
-                          "_type":  "request",
-                          "parentId":  "grp_orders_driver",
-                          "name":  "Actualizar estado (PICKED_UP/DELIVERED)",
-                          "method":  "POST",
-                          "url":  "{{ _.base_url }}/api/v1/orders/{{ _.order_id }}/status",
-                          "body":  {
-                                       "mimeType":  "application/json",
-                                       "text":  "{\n\t\"status\": \"PICKED_UP\"\n}"
-                                   },
-                          "authentication":  {
-                                                 "type":  "bearer",
-                                                 "token":  "{{ _.login_driver.response.body.access_token }}"
-                                             },
-                          "headers":  [
-                                          {
-                                              "name":  "Content-Type",
-                                              "value":  "application/json"
-                                          }
-                                      ]
-                      },
-                      {
-                          "_id":  "req_mine_orders",
-                          "_type":  "request",
-                          "parentId":  "grp_orders_driver",
-                          "name":  "Mis pedidos asignados",
-                          "method":  "GET",
-                          "url":  "{{ _.base_url }}/api/v1/orders/mine",
-                          "authentication":  {
-                                                 "type":  "bearer",
-                                                 "token":  "{{ _.login_driver.response.body.access_token }}"
-                                             },
-                          "headers":  [
-
-                                      ]
-                      },
-                      {
-                          "_id":  "req_upload_image",
-                          "_type":  "request",
-                          "parentId":  "grp_uploads",
-                          "name":  "Subir imagen (S3/MinIO)",
-                          "method":  "POST",
-                          "url":  "{{ _.base_url }}/api/v1/uploads/images",
-                          "authentication":  {
-                                                 "type":  "bearer",
-                                                 "token":  "{{ _.login_customer.response.body.access_token }}"
-                                             },
-                          "headers":  [
-
-                                      ],
-                          "body":  {
-                                       "mimeType":  "multipart/form-data",
-                                       "params":  [
-                                                      {
-                                                          "name":  "file",
-                                                          "fileName":  "foto.png",
-                                                          "type":  "file"
-                                                      }
-                                                  ]
-                                   }
-                      },
-                      {
-                          "_id":  "ws_orders",
-                          "_type":  "web_socket_request",
-                          "parentId":  "grp_realtime",
-                          "name":  "WS Orders (Customer)",
-                          "url":  "{{ _.ws_url }}/ws/orders?token={{ _.login_customer.response.body.access_token }}",
-                          "method":  "GET",
-                          "headers":  [
-
-                                      ]
-                      },
-                      {
-                          "_id":  "ws_orders_driver",
-                          "_type":  "web_socket_request",
-                          "parentId":  "grp_realtime",
-                          "name":  "WS Orders (Driver)",
-                          "url":  "{{ _.ws_url }}/ws/orders?token={{ _.login_driver.response.body.access_token }}",
-                          "method":  "GET",
-                          "headers":  [
-
-                                      ]
-                      }
-                  ]
+    {
+      "_id": "ws_orders",
+      "_type": "web_socket_request",
+      "parentId": "grp_realtime",
+      "name": "ws_orders_customer",
+      "url": "{{ _.ws_url }}/ws/orders?token={{ _.login_customer.response.body.access_token }}",
+      "method": "GET",
+      "headers": []
+    },
+    {
+      "_id": "ws_orders_driver",
+      "_type": "web_socket_request",
+      "parentId": "grp_realtime",
+      "name": "ws_orders_driver",
+      "url": "{{ _.ws_url }}/ws/orders?token={{ _.login_driver.response.body.access_token }}",
+      "method": "GET",
+      "headers": []
+    }
+  ]
 }
