@@ -17,9 +17,9 @@ services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: delivery
-      POSTGRES_PASSWORD: delivery_dev
-      POSTGRES_DB: delivery
+      POSTGRES_USER: imagine_delivery
+      POSTGRES_PASSWORD: imagine_delivery_dev
+      POSTGRES_DB: imagine_delivery
     ports: ["5432:5432"]
     volumes: [pgdata:/var/lib/postgresql/data]
 
@@ -35,7 +35,7 @@ services:
     build: ../../backend
     ports: ["8000:8000"]
     environment:
-      DATABASE_URL: postgresql+asyncpg://delivery:delivery_dev@postgres:5432/delivery
+      DATABASE_URL: postgresql+asyncpg://imagine_delivery:imagine_delivery_dev@postgres:5432/imagine_delivery
       STORAGE_BACKEND: s3          # apunta a MinIO
       S3_ENDPOINT_URL: http://minio:9000
     depends_on: [postgres, minio]
