@@ -48,12 +48,12 @@ Bug detectado en pruebas manuales: tras logout + login con otro usuario, la list
 - `logout()` limpia sesión + `currentUserProvider` e invalida los providers de pedidos; además llama a `POST /auth/logout` para revocar el refresh en el backend.
 - El backend ya filtraba por `customer_id`/`driver_id` del JWT; se blindó además el **detalle** de driver (un driver no asignado ya no puede ver pedidos ACCEPTED+ de otros; PENDING sigue visible para aceptar).
 
-**Verificación**: tests de integración nuevos (aislamiento de lista entre usuarios, driver no asignado no ve detalle, driver sí ve PENDING) + flujo E2E real confirmado.
+**Verificación**: tests de integración nuevos (aislamiento de lista entre usuarios, driver no asignado no ve detalle, driver sí ve PENDING) + widget test de cambio de sesión en cada app (`test/session_change_test.dart`, con `ApiClient` falso) + flujo E2E real confirmado.
 
 ## Calidad
 
 - `flutter analyze`: limpio en shared, customer_app y driver_app.
-- `flutter test`: 1 test de smoke por app (login render).
+- `flutter test`: smoke de login + test de cambio de sesión por app (2 tests por app); backend 25 tests.
 - `dart format`: aplicado en las tres.
 - Flujo E2E verificado contra la API real: register → login → crear → aceptar → PICKED_UP → DELIVERED (historial completo).
 
