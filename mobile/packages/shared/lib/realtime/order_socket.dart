@@ -4,8 +4,8 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../models/models.dart';
 
-/// Conexion WebSocket con reconexion automatica (backoff).
-/// Emite eventos de pedidos en tiempo real.
+/// Conexion WebSocket con reconexion automatica (backoff) y heartbeat.
+/// Envia "ping" periodicamente y reconecta si el "pong" no llega a tiempo.
 class OrderSocket {
   OrderSocket({required this.wsUrl, required String Function() tokenProvider})
       : _tokenProvider = tokenProvider;
@@ -13,11 +13,17 @@ class OrderSocket {
   final String wsUrl;
   final String Function() _tokenProvider;
 
+  static const _pingInterval = Duration(seconds: 20);
+  static const _pongTimeout = Duration(seconds: 10);
+
   final _controller = StreamController<RealtimeEvent>.broadcast();
   WebSocketChannel? _channel;
   Timer? _retryTimer;
+  Timer? _pingTimer;
+  Timer? _pongTimer;
   bool _disposed = false;
   int _attempt = 0;
+  bool _pongReceived = false;
 
   Stream<RealtimeEvent> get events => _controller.stream;
 
@@ -35,13 +41,35 @@ class OrderSocket {
         cancelOnError: true,
       );
       _attempt = 0;
+      _startHeartbeat();
     } catch (_) {
       _scheduleRetry();
     }
   }
 
+  void _startHeartbeat() {
+    _pingTimer?.cancel();
+    _pingTimer = Timer.periodic(_pingInterval, (_) {
+      _pongReceived = false;
+      _channel?.sink.add('ping');
+      _pongTimer?.cancel();
+      _pongTimer = Timer(_pongTimeout, () {
+        if (!_pongReceived) _scheduleRetry();
+      });
+    });
+  }
+
   void _onMessage(dynamic data) {
     if (data is! String) return;
+    if (data == 'pong') {
+      _pongReceived = true;
+      _pongTimer?.cancel();
+      return;
+    }
+    if (data == 'ping') {
+      _channel?.sink.add('pong');
+      return;
+    }
     try {
       final json =
           RegExp('\\{(?:[^{}]|\\{[^{}]*\\})*\\}').firstMatch(data)?.group(0);
@@ -70,7 +98,9 @@ class OrderSocket {
   }
 
   void _scheduleRetry() {
-    _channel = null;
+    _pingTimer?.cancel();
+    _pongTimer?.cancel();
+    _cancelChannel();
     if (_disposed) return;
     _attempt++;
     final delay = Duration(seconds: _attempt <= 1 ? 1 : 5);
@@ -78,17 +108,27 @@ class OrderSocket {
     _retryTimer = Timer(delay, connect);
   }
 
+  void _cancelChannel() {
+    try {
+      _channel?.sink.close();
+    } catch (_) {}
+    _channel = null;
+  }
+
   Future<void> disconnect() async {
     _disposed = true;
     _retryTimer?.cancel();
-    await _channel?.sink.close();
-    _channel = null;
+    _pingTimer?.cancel();
+    _pongTimer?.cancel();
+    _cancelChannel();
   }
 
   void dispose() {
     _disposed = true;
     _retryTimer?.cancel();
-    _channel?.sink.close();
+    _pingTimer?.cancel();
+    _pongTimer?.cancel();
+    _cancelChannel();
     _controller.close();
   }
 }
