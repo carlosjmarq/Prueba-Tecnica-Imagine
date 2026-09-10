@@ -21,6 +21,7 @@ Map of Content del vault. Desde aquí se navega toda la documentación del proye
 - [[ADR-007 Monorepo de apps moviles]]
 - [[ADR-008 Monorepo unico]]
 - [[ADR-009 Subida de imagenes proxy autenticado y comprobante de entrega]]
+- [[ADR-010 WebSocket robusto heartbeat y sin sesion por conexion]]
 
 ## Documentación técnica (20 Tecnico)
 

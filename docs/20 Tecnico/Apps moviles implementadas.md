@@ -23,15 +23,17 @@ date: 2026-09-09
 
 - **Auth**: Login/Registro con validación y estados de carga/error (login_screen + auth_providers). La sesión guarda tokens + `User` (via `/me`); el perfil muestra nombre y email reales.
 - **Home**: bottom nav (Pedidos / Crear / Perfil) con `IndexedStack`.
-- **Pedidos**: lista (pull-to-refresh, chips de estado), detalle (items con thumbnail, historial, cancelar si PENDING, comprobante de entrega si DELIVERED), crear (items dinámicos con **foto opcional por ítem** vía `image_picker`; la foto se sube al enviar el formulario y se manda como `image_key`).
+- **Pedidos**: lista con filtro **Activos / Completados** (pull-to-refresh, chips de estado), detalle (items con thumbnail, historial, cancelar si PENDING, comprobante de entrega si DELIVERED), crear (items dinámicos con **foto opcional por ítem** vía `image_picker`; la foto se sube al enviar el formulario y se manda como `image_key`).
 - **Realtime**: `realtimeEventsProvider` escucha el socket e invalida lista/detalle al recibir `order.updated`.
 
 ## Driver App (`mobile/driver_app`)
 
 - **Auth**: Login (solo login, rol DRIVER).
-- **Home**: bottom nav (Disponibles / Mis pedidos).
+- **Home**: bottom nav (Disponibles / Mis pedidos / Historial / Perfil).
 - **Disponibles**: lista de PENDING con botón "Aceptar".
-- **Mis pedidos**: estado + botón para avanzar (ACCEPTED→PICKED_UP→DELIVERED). Al marcar **DELIVERED** se exige adjuntar el **comprobante de entrega** (foto, obligatoria en la app) que se sube y envía como `delivery_proof_key`; la card muestra el thumbnail del comprobante adjunto.
+- **Mis pedidos**: pedidos activos (ACCEPTED/PICKED_UP) + botón para avanzar (ACCEPTED→PICKED_UP→DELIVERED) con **loader** mientras se sube el comprobante. Al marcar **DELIVERED** se exige adjuntar el **comprobante de entrega** (foto, obligatoria en la app) que se sube y envía como `delivery_proof_key`; la card muestra el thumbnail del comprobante adjunto.
+- **Historial**: pedidos ya entregados (con comprobante).
+- **Perfil**: nombre y email del repartidor + cerrar sesión.
 - **Realtime**: invalida ambas listas al recibir eventos `order.created`/`order.updated`.
 
 ## Configuración
@@ -61,7 +63,7 @@ Ver [[ADR-009 Subida de imagenes proxy autenticado y comprobante de entrega]]. R
 ## Calidad
 
 - `flutter analyze`: limpio en shared, customer_app y driver_app.
-- `flutter test`: smoke de login + test de cambio de sesión por app + widget test de foto por ítem en customer (3 tests customer, 2 driver); backend 30 tests.
+- `flutter test`: smoke de login + test de cambio de sesión por app + widget test de foto por ítem en customer (3 tests customer, 2 driver); backend 32 tests.
 - `dart format`: aplicado en las tres.
 - Flujo E2E verificado contra la API real: register → login → crear → aceptar → PICKED_UP → DELIVERED (historial completo).
 

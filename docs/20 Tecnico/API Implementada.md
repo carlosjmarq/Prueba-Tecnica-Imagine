@@ -40,7 +40,7 @@ date: 2026-09-09
 ### Realtime
 | Ruta | Descripción |
 | ---- | ----------- |
-| `WS /ws/orders?token=<jwt>` | Rooms `user:{id}` y `orders:available` (drivers) |
+| `WS /ws/orders?token=<jwt>` | Rooms `user:{id}` y `orders:available` (drivers); heartbeat ping/pong; auth sin retener sesión de BD ([[ADR-010 WebSocket robusto heartbeat y sin sesion por conexion]]) |
 
 ## Decisiones implementadas
 
@@ -53,7 +53,7 @@ date: 2026-09-09
 
 ## Calidad
 
-- `pytest`: 30 tests verdes (auth, pedidos, WS, uploads, aislamiento, imágenes).
+- `pytest`: 32 tests verdes (auth, pedidos, WS, uploads, aislamiento, imágenes).
 - `ruff check`, `ruff format --check`, `mypy app`: sin errores.
 - Swagger disponible en `/docs`.
 
