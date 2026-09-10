@@ -23,8 +23,8 @@ class Settings(BaseSettings):
     s3_endpoint_url: str | None = "http://localhost:9000"
     s3_bucket: str = "delivery-media"
     s3_region: str = "us-east-1"
-    s3_access_key: str = "minioadmin"
-    s3_secret_key: str = "minioadmin"
+    s3_access_key: str | None = None
+    s3_secret_key: str | None = None
 
     rate_limit_per_minute: int = 60
 

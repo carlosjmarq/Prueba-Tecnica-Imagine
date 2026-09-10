@@ -14,9 +14,10 @@ def _s3_client() -> Any:
     settings = get_settings()
     kwargs: dict[str, Any] = {
         "region_name": settings.s3_region,
-        "aws_access_key_id": settings.s3_access_key,
-        "aws_secret_access_key": settings.s3_secret_key,
     }
+    if settings.s3_access_key and settings.s3_secret_key:
+        kwargs["aws_access_key_id"] = settings.s3_access_key
+        kwargs["aws_secret_access_key"] = settings.s3_secret_key
     if settings.s3_endpoint_url:
         kwargs["endpoint_url"] = settings.s3_endpoint_url
     return boto3.client("s3", **kwargs)
