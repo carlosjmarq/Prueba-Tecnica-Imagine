@@ -1,6 +1,6 @@
 ---
 tags: [infra, aws, cloudwatch, logging]
-status: borrador
+status: vigente
 date: 2026-09-08
 ---
 
@@ -33,7 +33,7 @@ date: 2026-09-08
 
 | Recurso             | Qué recoge                                              |
 | ------------------- | ------------------------------------------------------- |
-| **Log Groups**      | `delivery/api`, `delivery/alb`, `delivery/rds`          |
+| **Log Groups**      | `/aws/ec2/delivery-api`, `/aws/alb/delivery`, `/aws/lambda/delivery-order-timeout` |
 | **Log Streams**     | por instancia/contenedor                                 |
 | **Métricas**        | custom: `orders.created`, `orders.accepted`, `ws.connections`, latencias, errores 4xx/5xx |
 | **Alarmas**         | 5xx > X% (5 min), latencia p95 > umbral, RDS CPU > 80%, free storage < 20% → SNS |
@@ -56,6 +56,19 @@ resource "aws_cloudwatch_metric_alarm" "api_5xx" {
   alarm_actions       = [aws_sns_topic.alerts.arn]
 }
 ```
+
+> **Implementación (Fase 4, 2026-09-10):** módulo `infra/terraform/modules/observability/`.
+> Crea los 3 log groups (retención 14 días), el topico SNS `delivery-alerts` con
+> suscripción email, las alarmas ALB 5XX > 10 (2×300 s), RDS CPU > 80% y RDS
+> `FreeStorageSpace` < 20% del almacenamiento asignado (todas con acción al SNS),
+> y un dashboard `delivery-dev` con widgets de ALB y RDS. Los logs del contenedor
+> llegan con el driver Docker `awslogs` (rol de instancia con `CloudWatchAgentServerPolicy`).
+
+## Estado real (deploy 2026-09-10)
+
+- Log groups creados y recibiendo logs: `/aws/ec2/delivery-api`, `/aws/alb/delivery`, `/aws/lambda/delivery-order-timeout` (retención 14 días).
+- SNS `delivery-alerts` con suscripción email (`carlosjwriter01@gmail.com`) y alarmas activas: ALB 5xx, RDS CPU y RDS free storage.
+- Dashboard `delivery-dev` desplegado con widgets de ALB y RDS; los logs del contenedor llegan vía driver Docker `awslogs`.
 
 ## Relaciones
 

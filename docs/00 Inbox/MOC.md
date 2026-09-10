@@ -18,6 +18,7 @@ Map of Content del vault. Desde aquí se navega toda la documentación del proye
 - [[ADR-003 Vault Obsidian como fuente de verdad]]
 - [[ADR-004 Estado de las apps]]
 - [[ADR-005 Realtime WebSocket vs SSE]]
+- [[ADR-006 Lambda order-timeout-canceller]]
 - [[ADR-007 Monorepo de apps moviles]]
 - [[ADR-008 Monorepo unico]]
 - [[ADR-009 Subida de imagenes proxy autenticado y comprobante de entrega]]
@@ -49,6 +50,7 @@ Map of Content del vault. Desde aquí se navega toda la documentación del proye
 
 - [[Setup y herramientas]]
 - [[Fases del proyecto]]
+- [[Deploy AWS automatizado]]
 - [[RPI Research Plan Implement]]
 - [[Checklist de la prueba]]
 - [[Convenciones git y commits]]

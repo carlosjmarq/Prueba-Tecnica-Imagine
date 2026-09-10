@@ -1,6 +1,6 @@
 ---
 tags: [infra, aws, s3, cloudfront]
-status: borrador
+status: vigente
 date: 2026-09-08
 ---
 
@@ -81,6 +81,20 @@ resource "aws_cloudfront_distribution" "media" {
   restrictions { geo_restriction { restriction_type = "none" } }
 }
 ```
+
+> **Implementación (Fase 4, 2026-09-10):** módulo `infra/terraform/modules/s3_cloudfront/`.
+> Bucket `delivery-media-<env>` privado (block public access total, versionado,
+> SSE-S3 AES256, CORS para presigned PUT con `expose_headers=["ETag"]`, lifecycle
+> STANDARD_IA 30d / GLACIER 90d), OAC y distribucion CloudFront con
+> `CachingOptimized` (`658327ea-...`) y `redirect-to-https`. Exporta la policy IAM
+> `delivery-media-rw` (Get/Put/Delete) que se adjunta al rol del EC2; el bucket
+> policy solo permite `s3:GetObject` a CloudFront via OAC.
+
+## Estado real (deploy 2026-09-10)
+
+- Bucket real **`delivery-media-dev`** privado (block public access total, versioning, SSE-S3 AES256, CORS para presigned `PUT` con `expose_headers=["ETag"]`, lifecycle STANDARD_IA 30d / GLACIER 90d).
+- Distribución CloudFront con **OAC**: `https://d3b1xgzyfgomor.cloudfront.net`.
+- La **carga real a S3** se hizo por presigned URLs (subida directa desde las apps), verificada end-to-end; el bucket policy solo permite `s3:GetObject` a CloudFront vía OAC.
 
 ## Relaciones
 

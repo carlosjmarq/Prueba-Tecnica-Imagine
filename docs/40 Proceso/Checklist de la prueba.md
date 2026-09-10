@@ -27,31 +27,31 @@ date: 2026-09-08
 
 ## Infraestructura cloud (obligatorio)
 
-- [ ] README explica cómo desplegar PostgreSQL en AWS RDS (instancia, backups, HA) ([[RDS PostgreSQL]])
+- [x] README explica cómo desplegar PostgreSQL en AWS RDS (instancia, backups, HA) ([[RDS PostgreSQL]])
 - [x] StorageService para imágenes: siempre S3 (MinIO en dev, AWS S3 en prod) ([[StorageService]])
 - [x] Subida de imágenes en las apps: foto por ítem (customer) y comprobante de entrega (driver) ([[ADR-009 Subida de imagenes proxy autenticado y comprobante de entrega]])
-- [ ] Diagrama de arquitectura: EC2, RDS, S3, CloudFront, Load Balancer, WebSocket, Security Groups ([[Arquitectura AWS]])
-- [ ] Proyecto dockerizado ([[Docker y despliegue]])
+- [x] Diagrama de arquitectura: EC2, RDS, S3, CloudFront, Load Balancer, WebSocket, Security Groups ([[Arquitectura AWS]])
+- [x] Proyecto dockerizado ([[Docker y despliegue]])
 
 ## Puntos extra
 
-- [ ] Rate Limiting ([[API Autenticacion]])
-- [ ] Refresh Tokens ([[API Autenticacion]])
-- [ ] Tests automatizados ([[Testing y calidad]])
-- [ ] Swagger documentado (`/docs`)
-- [ ] GitHub Actions ([[Docker y despliegue]])
-- [ ] Deploy
-- [ ] Carga real a AWS S3 ([[S3 y CloudFront]])
-- [ ] Proceso Lambda identificado y justificado ([[Lambda]])
-- [ ] Uso de CloudFront explicado ([[S3 y CloudFront]])
-- [ ] Logging estructurado + monitoreo CloudWatch ([[CloudWatch y logging]])
+- [x] Rate Limiting ([[API Autenticacion]])
+- [x] Refresh Tokens ([[API Autenticacion]])
+- [x] Tests automatizados ([[Testing y calidad]])
+- [x] Swagger documentado (`/docs`)
+- [x] GitHub Actions ([[Docker y despliegue]])
+- [x] Deploy
+- [x] Carga real a AWS S3 ([[S3 y CloudFront]])
+- [x] Proceso Lambda identificado y justificado ([[Lambda]])
+- [x] Uso de CloudFront explicado ([[S3 y CloudFront]])
+- [x] Logging estructurado + monitoreo CloudWatch ([[CloudWatch y logging]])
 
 ## Entregables
 
-- [ ] Repositorio(s) Git ([[ADR-002 Estructura multi-repositorio]])
-- [ ] README con instrucciones (cada repo)
-- [ ] Migraciones
-- [ ] Diagrama de arquitectura
+- [x] Repositorio(s) Git ([[ADR-008 Monorepo unico]]; ver también [[ADR-002 Estructura multi-repositorio]])
+- [x] README con instrucciones (cada repo)
+- [x] Migraciones
+- [x] Diagrama de arquitectura
 - [ ] Video opcional ≤ 5 min ([[Guion video]])
 
 ## Relaciones

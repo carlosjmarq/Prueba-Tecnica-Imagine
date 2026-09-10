@@ -1,6 +1,6 @@
 ---
 tags: [infra, aws, arquitectura]
-status: borrador
+status: vigente
 date: 2026-09-08
 ---
 
@@ -72,6 +72,18 @@ flowchart TB
 - **CloudFront**: ver [[S3 y CloudFront]].
 - **CloudWatch**: ver [[CloudWatch y logging]].
 - **Lambda**: ver [[Lambda]].
+
+> **Implementación (Fase 4, 2026-09-10):** IaC en `infra/terraform/` con 6 módulos
+> (`vpc`, `rds`, `s3_cloudfront`, `compute`, `observability`, `lambda`) instanciados
+> desde `envs/dev`. State remoto en S3 `imagine-delivery-tfstate-646364595364` +
+> lock DynamoDB (`infra/terraform/scripts/bootstrap.ps1`). `tofu fmt -check`,
+> `tofu validate` OK. Diagrama: [[assets/diagrams/Arquitectura AWS]].
+
+## Estado real (deploy 2026-09-10)
+
+- Deploy real en **`eu-west-1`, cuenta `646364595364`**: VPC `10.0.0.0/16`, 2 AZs, 1 NAT, SGs con mínimo privilegio.
+- **Endpoint público API**: http://delivery-dev-alb-290184693.eu-west-1.elb.amazonaws.com — bucket `delivery-media-dev` + CloudFront `d3b1xgzyfgomor.cloudfront.net`.
+- State remoto en S3 `imagine-delivery-tfstate-646364595364` + lock DynamoDB.
 
 ## Relaciones
 

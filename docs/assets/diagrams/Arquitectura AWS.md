@@ -49,3 +49,16 @@ flowchart TB
 
 Ver también: [[30 Infraestructura/RDS PostgreSQL]], [[30 Infraestructura/S3 y CloudFront]],
 [[30 Infraestructura/CloudWatch y logging]], [[30 Infraestructura/Lambda]], [[30 Infraestructura/Docker y despliegue]].
+
+## Módulos Terraform
+
+| Módulo                          | Recursos principales                                              |
+| ------------------------------- | ---------------------------------------------------------------- |
+| `modules/vpc`                   | VPC 10.0.0.0/16, 2 AZ, subnets públicas/privadas, IGW, NAT, SGs  |
+| `modules/rds`                   | PostgreSQL 16.4 Multi-AZ, backups 7d, SSM `delivery/db/*`        |
+| `modules/s3_cloudfront`         | Bucket privado + OAC + CloudFront + policy IAM `media-rw`        |
+| `modules/compute`               | ECR, launch template + user-data, ASG, ALB, IAM role/instance profile |
+| `modules/observability`         | Log groups, SNS, alarmas ALB/RDS, dashboard                      |
+| `modules/lambda`                | `order-timeout-canceller` + EventBridge cron 5 min               |
+
+Estado remoto: S3 `imagine-delivery-tfstate-646364595364` + lock DynamoDB. Entorno: `envs/dev`.

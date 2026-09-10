@@ -1,6 +1,6 @@
 ---
 tags: [infra, aws, lambda, serverless]
-status: borrador
+status: vigente
 date: 2026-09-08
 ---
 
@@ -29,7 +29,7 @@ Alternativas descartadas: tarea Celery/worker (agrega infraestructura persistent
 
 1. EventBridge invoca la Lambda cada N minutos.
 2. La Lambda consulta pedidos `PENDING` con `created_at < now - timeout`.
-3. Transiciona a `CANCELLED` (con `reason=timeout`) y emite evento por el canal realtime (si aplica, vía API/WebSocket o se omite en esta simplificación).
+3. Transiciona a `CANCELLED` con guard en el `UPDATE` y registra el cambio en `order_status_history`.
 4. Registra en `order_status_history` (mismo dominio que el API).
 
 ## Código (resumen)
@@ -44,13 +44,26 @@ def handler(event, context):
 ```
 
 - Runtime: Python 3.12 (mismo lenguaje del proyecto).
-- VPC: conectada a la DB privada vía security group + `rds-proxy` si se requiere (o endpoint de red).
-- IAM: `lambda:InvokeFunction` desde EventBridge, `s3:PutObject` (logs) / CloudWatch Logs.
-- Terrasform: `aws_lambda_function` + `aws_cloudwatch_event_rule` + `aws_cloudwatch_event_target`.
+- VPC: subnets privadas + `sg_lambda` (autorizado en el SG de RDS); el egress sale por NAT para leer SSM.
+- IAM: `AWSLambdaVPCAccessExecutionRole` + `AWSLambdaBasicExecutionRole` + `ssm:GetParameter`/`kms:Decrypt`.
+- Terraform: `aws_lambda_function` + `aws_cloudwatch_event_rule` (`cron(0/5 * * * ? *)`) + `aws_cloudwatch_event_target`.
+
+> **Implementación (Fase 4, 2026-09-10):** módulo `infra/terraform/modules/lambda/` y
+> código en `infra/functions/order_timeout_canceller/` (`lambda_function.py` + `build.ps1`
+> que empaqueta `pg8000` pure-python en `package/`). Lee `delivery/db/url` y
+> `delivery/db/password` de SSM en runtime con boto3, conecta con `pg8000` (SSL) y
+> cancela los `PENDING` con `created_at` anterior al cutoff, devolviendo `{"cancelled": n}`
+> y un log JSON. Ver [[ADR-006 Lambda order-timeout-canceller]].
+
+## Estado real (deploy 2026-09-10)
+
+- Función **`delivery-order-timeout-canceller`** desplegada (python3.12, pg8000, VPC, cron cada 5 min) y **verificada en real**: devuelve `{"cancelled": 0}`.
+- Conecta a RDS con `pg8000` en modo autocommit nativo: se eliminó el `commit()` explícito que fallaba en runtime.
+- Empaquetado de `pg8000` (pure-python) vía `build.ps1`; lee `/delivery/db/url` y `/delivery/db/password` de SSM.
 
 ## Relaciones
 
 - **MOC:** [[00 Inbox/MOC]]
 - **Relacionada con:** [[API Pedidos y estados]], [[Arquitectura AWS]]
-- **ADR:** crea `ADR-006 Lambda order-timeout-canceller` al implementar
+- **ADR:** [[ADR-006 Lambda order-timeout-canceller]] (Aceptado)
 - **Repo:** `infra` (Terraform: `modules/lambda/`, código en `functions/`)

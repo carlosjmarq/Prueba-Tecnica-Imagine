@@ -1,6 +1,6 @@
 ---
 tags: [infra, aws, rds, postgres]
-status: borrador
+status: vigente
 date: 2026-09-08
 ---
 
@@ -19,7 +19,7 @@ date: 2026-09-08
 | Backup retention     | 7 días (mín. recomendado)    | automáticos diarios + PITR           |
 | VPC                  | Subnets privadas (2 AZ)      | sin IP pública                       |
 | Security Group       | Solo 5432 desde SG-API       | nunca exponer a internet             |
-| Parameter group      | `rds.force_ssl=1`            | TLS obligatorio                      |
+| Parameter group      | default (sin `force_ssl`)    | `pg8000` conecta con SSL; no se obliga |
 
 ## Alta disponibilidad (Multi-AZ)
 
@@ -60,6 +60,21 @@ resource "aws_db_instance" "delivery" {
   vpc_security_group_ids  = [aws_security_group.rds.id]
 }
 ```
+
+> **Implementación (Fase 4, 2026-09-10):** módulo `infra/terraform/modules/rds/`.
+> `aws_db_instance` PostgreSQL 16.4, `db.t3.small`, gp3 20 GB, `multi_az=true`,
+> `backup_retention_period=7`, ventana `02:00-03:00`, `deletion_protection=true`,
+> `skip_final_snapshot=false` y `storage_encrypted=true`, en subnets privadas.
+> Publica la URL asyncpg en SSM SecureString `delivery/db/url` y el password en
+> `delivery/db/password`, consumidos por el EC2 (rol IAM) y la Lambda (`pg8000`).
+> El parameter group queda por defecto, con `rds.force_ssl` sin activar.
+
+## Estado real (deploy 2026-09-10)
+
+- RDS PostgreSQL **16.13** en `eu-west-1` (16.4 no estaba disponible en la región al desplegar), `db.t3.small`, gp3 20 GB, **Multi-AZ**, backups 7 días con PITR y deletion protection.
+- Migraciones Alembic aplicadas sobre la instancia real: `initial schema` + `add delivery proof key`.
+- Credenciales publicadas en SSM SecureString `/delivery/db/url` y `/delivery/db/password` (nombres jerárquicos con `/` inicial); SG-RDS 5432 solo desde SG-API y SG-Lambda.
+- Corrección durante el deploy: el SG-API abría el puerto 8000 (no solo el de origen) para el health check del ALB.
 
 ## Relaciones
 

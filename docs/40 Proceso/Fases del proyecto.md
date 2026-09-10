@@ -16,8 +16,8 @@ date: 2026-09-08
 | 1    | Fundaciones     | `/foundations`        | ✅     |
 | 2    | Backend         | `/backend`            | ✅     |
 | 3    | Apps móviles    | `/apps`               | ✅     |
-| 4    | Infraestructura | `/infra`              | ⬜     |
-| 5    | Entrega         | `/deliver`            | ⬜     |
+| 4    | Infraestructura | `/infra`              | ✅     |
+| 5    | Entrega         | `/deliver`            | ⬜ (siguiente) |
 
 ## Fase 0 — Setup
 
@@ -49,11 +49,20 @@ Instalar y verificar el toolchain ([[Setup y herramientas]]). Salida: tabla de h
 - Estado Riverpod ([[ADR-004 Estado de las apps]] Aceptado); UI con el [[Design System de las apps]] (ui-ux-pro-max).
 - Estado real: [[Apps moviles implementadas]].
 
-## Fase 4 — Infraestructura
+## Fase 4 — Infraestructura ✅
+
+**Deploy real completado el 2026-09-10** en AWS `eu-west-1`, cuenta `646364595364`.
 
 - Diagrama de arquitectura ([[Arquitectura AWS]]).
-- Terraform: RDS ([[RDS PostgreSQL]]), S3+CloudFront ([[S3 y CloudFront]]), EC2/ALB, CloudWatch ([[CloudWatch y logging]]), Lambda ([[Lambda]]).
+- Terraform (OpenTofu) con 6 módulos (`vpc`, `rds`, `s3_cloudfront`, `compute`, `observability`, `lambda`) instanciados desde `envs/dev`; state remoto en S3 `imagine-delivery-tfstate-646364595364` + lock DynamoDB.
+- **Red**: VPC `10.0.0.0/16`, 2 AZs, 1 NAT; SGs con mínimo privilegio (ALB 80/443 desde internet, API 8000 desde ALB, RDS 5432 desde API+Lambda, Lambda con egress).
+- **RDS** ([[RDS PostgreSQL]]): PostgreSQL **16.13**, `db.t3.small` gp3 20 GB, Multi-AZ, backups 7 días con PITR y deletion protection; migraciones Alembic aplicadas (initial schema + add delivery proof key).
+- **S3 + CloudFront** ([[S3 y CloudFront]]): bucket privado `delivery-media-dev` (versioning, SSE-S3 AES256, CORS presign, lifecycle IA 30d / Glacier 90d) con distribución CloudFront OAC `d3b1xgzyfgomor.cloudfront.net`.
+- **Compute** ([[Docker y despliegue]]): ECR `delivery-api`, ALB `delivery-dev-alb` (HTTP:80 → TG 8000) y ASG `t3.micro` 1–2 con user-data Docker (login ECR + SSM + uvicorn). Health `/health` OK y flujo completo probado (registro → login → pedido `PENDING`).
+- **Observabilidad** ([[CloudWatch y logging]]): log groups `/aws/ec2/delivery-api`, `/aws/alb/delivery`, `/aws/lambda/delivery-order-timeout`; SNS `delivery-alerts` (email); alarmas ALB 5xx, RDS CPU y RDS free storage; dashboard.
+- **Lambda** ([[Lambda]]): `delivery-order-timeout-canceller` (python3.12, pg8000, VPC, cron cada 5 min) verificada — retorna `{"cancelled": 0}`.
 - GitHub Actions + dockerizado ([[Docker y despliegue]]).
+- **Endpoint público API**: http://delivery-dev-alb-290184693.eu-west-1.elb.amazonaws.com (Swagger en `/docs`).
 
 ## Fase 5 — Entrega
 

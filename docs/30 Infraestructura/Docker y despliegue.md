@@ -1,6 +1,6 @@
 ---
 tags: [infra, docker, despliegue]
-status: borrador
+status: vigente
 date: 2026-09-08
 ---
 
@@ -20,7 +20,7 @@ services:
       POSTGRES_USER: imagine_delivery
       POSTGRES_PASSWORD: imagine_delivery_dev
       POSTGRES_DB: imagine_delivery
-    ports: ["5432:5432"]
+    ports: ["5434:5432"]
     volumes: [pgdata:/var/lib/postgresql/data]
 
   minio:
@@ -32,7 +32,7 @@ services:
       MINIO_ROOT_PASSWORD: minioadmin
 
   api:
-    build: ../../backend
+    build: ../backend
     ports: ["8000:8000"]
     environment:
       DATABASE_URL: postgresql+asyncpg://imagine_delivery:imagine_delivery_dev@postgres:5432/imagine_delivery
@@ -75,6 +75,21 @@ CMD [".venv/bin/uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 3. Migraciones: paso explícito en el pipeline (con backup previo, ver [[RDS PostgreSQL]]).
 4. Variables/secretos en **SSM Parameter Store / Secrets Manager**, inyectados como env del contenedor.
 5. Rollback: desplegar la imagen anterior en el target group.
+
+> **Implementación (Fase 4, 2026-09-10):** compose full en `infra/docker-compose.yml`
+> (postgres 5434 + MinIO + API en 8000, con `build: ../backend`). Módulo
+> `infra/terraform/modules/compute/`: ECR `delivery-api`, launch template
+> Amazon Linux 2023 con user-data (instala Docker, `ecr get-login-password`, lee
+> SSM y arranca el contenedor con `--restart unless-stopped` y logs `awslogs`),
+> ASG 1–2 en subnets privadas, ALB internet-facing con target group :8000 y health
+> check `/health`. CI en `.github/workflows/ci.yml` (fmt + validate) y CD en
+> `.github/workflows/deploy.yml` (build/push a ECR + `tofu apply` con OIDC).
+
+## Estado real (deploy 2026-09-10)
+
+- ECR `delivery-api`, ALB **`delivery-dev-alb`** (HTTP:80 → target group :8000) y ASG `t3.micro` 1–2 con user-data Docker (login ECR + SSM + uvicorn); health `/health` OK.
+- **Endpoint público API**: http://delivery-dev-alb-290184693.eu-west-1.elb.amazonaws.com (Swagger en `/docs`). Flujo completo probado: registro → login → pedido `PENDING`.
+- Correcciones durante el deploy: `Dockerfile` con rutas `./app/` y `./alembic/` + `COPY README.md`; rol EC2 con `AmazonSSMManagedInstanceCore` para leer SSM.
 
 ## Relaciones
 
