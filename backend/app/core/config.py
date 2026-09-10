@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     app_name: str = "delivery-api"
     environment: str = "development"
     debug: bool = True
+    sql_echo: bool = False
 
     database_url: str = (
         "postgresql+asyncpg://imagine_delivery:imagine_delivery_dev@localhost:5434/imagine_delivery"

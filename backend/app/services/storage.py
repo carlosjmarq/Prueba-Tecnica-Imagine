@@ -1,3 +1,5 @@
+import asyncio
+from functools import lru_cache
 from typing import Any
 from uuid import UUID
 
@@ -6,37 +8,51 @@ import boto3
 from app.core.config import get_settings
 
 
+@lru_cache
+def _s3_client() -> Any:
+    """Cliente S3 compartido (se crea una sola vez por proceso)."""
+    settings = get_settings()
+    kwargs: dict[str, Any] = {
+        "region_name": settings.s3_region,
+        "aws_access_key_id": settings.s3_access_key,
+        "aws_secret_access_key": settings.s3_secret_key,
+    }
+    if settings.s3_endpoint_url:
+        kwargs["endpoint_url"] = settings.s3_endpoint_url
+    return boto3.client("s3", **kwargs)
+
+
 class S3StorageService:
     """StorageService que siempre apunta a S3 (MinIO en dev, AWS S3 en prod).
 
     La unica diferencia entre entornos es el endpoint y las credenciales;
     la implementacion es identica (ver docs/20 Tecnico/StorageService).
+    Las llamadas boto3 son bloqueantes y se ejecutan en un thread para no
+    bloquear el event loop de la API.
     """
 
     def __init__(self) -> None:
-        settings = get_settings()
-        kwargs: dict[str, Any] = {
-            "region_name": settings.s3_region,
-            "aws_access_key_id": settings.s3_access_key,
-            "aws_secret_access_key": settings.s3_secret_key,
-        }
-        if settings.s3_endpoint_url:
-            kwargs["endpoint_url"] = settings.s3_endpoint_url
-        self._client = boto3.client("s3", **kwargs)
-        self._bucket = settings.s3_bucket
+        self._client = _s3_client()
+        self._bucket = get_settings().s3_bucket
 
     async def upload(self, key: str, data: bytes, content_type: str) -> str:
-        self._client.put_object(Bucket=self._bucket, Key=key, Body=data, ContentType=content_type)
+        await asyncio.to_thread(
+            self._client.put_object,
+            Bucket=self._bucket,
+            Key=key,
+            Body=data,
+            ContentType=content_type,
+        )
         return key
 
     async def get(self, key: str) -> tuple[bytes, str]:
-        obj = self._client.get_object(Bucket=self._bucket, Key=key)
-        data: bytes = obj["Body"].read()
+        obj = await asyncio.to_thread(self._client.get_object, Bucket=self._bucket, Key=key)
+        data = await asyncio.to_thread(obj["Body"].read)
         content_type: str = obj.get("ContentType", "application/octet-stream")
         return data, content_type
 
     async def delete(self, key: str) -> None:
-        self._client.delete_object(Bucket=self._bucket, Key=key)
+        await asyncio.to_thread(self._client.delete_object, Bucket=self._bucket, Key=key)
 
     def public_url(self, key: str) -> str:
         settings = get_settings()

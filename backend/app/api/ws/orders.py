@@ -41,7 +41,7 @@ async def orders_ws(websocket: WebSocket, user: WsUserDep) -> None:
                 await websocket.send_text("pong")
     except Exception:
         # Conexion cerrada o cliente muerto: la limpieza ocurre en `finally`.
-        logger.debug("WebSocket cerrado", exc_info=True)
+        logger.debug("WebSocket cerrado")
     finally:
         for room in rooms:
             manager.disconnect(room, websocket)
