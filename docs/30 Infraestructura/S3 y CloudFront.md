@@ -35,6 +35,32 @@ Configuración:
 
 En `StorageService` ([[StorageService]]), `public_url()` devuelve `https://<distribution>.cloudfront.net/images/{key}`.
 
+## CORS (subidas directas con presigned URLs)
+
+Para que un navegador (build web) haga `PUT` directo al bucket con una presigned URL, S3 debe tener CORS. Reglas a aplicar en terraform:
+
+```hcl
+resource "aws_s3_bucket_cors_configuration" "media" {
+  bucket = aws_s3_bucket.media.id
+  cors_rule {
+    allowed_origins = ["*"]
+    allowed_methods = ["GET", "PUT", "HEAD"]
+    allowed_headers = ["*"]
+    expose_headers  = ["ETag"]
+    max_age_seconds = 3000
+  }
+}
+```
+
+> Nota dev: MinIO (este build) **no implementa** bucket CORS (`PutBucketCors` → NotImplemented). Solo afecta a web; Android/emulador no requiere CORS. Script best-effort en `scripts/minio-cors.ps1` (avisa si MinIO no lo soporta).
+
+## Contenido privado: signed URLs vs proxy
+
+Las imágenes del proyecto son **por usuario** (fotos de ítems y comprobante de entrega). CloudFront con OAC sirve el bucket privado pero con **URLs públicas** (cualquiera con el enlace). Para contenido privado hay dos vías:
+
+- **Proxy autenticado** `GET /uploads/images/{key}` (actual): el navegador/app envía el Bearer; S3 nunca se expone. Es la opción usada hoy.
+- **CloudFront Signed URLs**: el backend firma URLs con expiración; CloudFront sirve directo (menor bandwidth del API) pero exige gestionar firmas. Documentado como opción de prod.
+
 ## Terraform (resumen)
 
 ```hcl

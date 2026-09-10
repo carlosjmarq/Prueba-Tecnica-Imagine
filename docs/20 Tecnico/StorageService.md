@@ -15,6 +15,7 @@ class StorageService(Protocol):
     async def upload(self, key: str, data: bytes, content_type: str) -> str: ...
     async def get(self, key: str) -> tuple[bytes, str]: ...
     async def delete(self, key: str) -> None: ...
+    def presign_put(self, key: str, content_type: str, expires: int = 300) -> str: ...
     def public_url(self, key: str) -> str: ...
 ```
 
@@ -43,19 +44,20 @@ El `endpoint_url` se omite en producción para usar el endpoint real de AWS S3. 
 
 | Método | Ruta                      | Uso                          |
 | ------ | ------------------------- | ---------------------------- |
-| POST   | `/api/v1/uploads/images`  | Subir imagen → devuelve `key` + URL |
+| POST   | `/api/v1/uploads/presign` | **Presigned PUT URL** (escritura directa cliente→S3) |
+| POST   | `/api/v1/uploads/images`  | Subir imagen (proxy, fallback) → devuelve `key` + URL |
 | GET    | `/api/v1/uploads/images/{key}` | **Proxy de lectura autenticado** (implementado) |
 
-La lectura **en la app** se hace siempre por el proxy autenticado `GET /uploads/images/{key}` (requiere Bearer): funciona desde el emulador (`10.0.2.2`) y mantiene el bucket privado. En producción las imágenes se sirven por **CloudFront** con origen S3 y OAC (ver [[S3 y CloudFront]]); el `public_url` devuelve la URL de CloudFront en todos los entornos (en dev, la URL de MinIO).
+La **escritura** usa presigned URLs: el backend firma la URL y el cliente hace `PUT` directo a S3/MinIO (sin pasar bytes por la API). La **lectura en la app** se hace siempre por el proxy autenticado `GET /uploads/images/{key}` (requiere Bearer): funciona desde el emulador (`10.0.2.2`) y mantiene el bucket privado. En producción las imágenes se sirven por **CloudFront** con origen S3 y OAC (ver [[S3 y CloudFront]]); para contenido privado se necesitarían **signed URLs**.
 
-> Decisión completa en [[ADR-009 Subida de imagenes proxy autenticado y comprobante de entrega]].
+> Decisiones completas en [[ADR-009 Subida de imagenes proxy autenticado y comprobante de entrega]] y [[ADR-011 Subida directa con presigned URLs]].
 
 ## Buenas prácticas
 
-- Keys con prefijo por entidad: `orders/{order_id}/items/{item_id}.jpg`.
-- Validar tipo MIME y tamaño máximo (ej. 5 MB) antes de subir.
-- Presigned URLs para escritura directa cliente→S3 (opcional).
-- No exponer el bucket: solo CloudFront público o acceso firmado (OAC).
+- Keys con prefijo por entidad y UUID: `users/{user_id}/images/{uuid}.{ext}` (las genera el servidor).
+- Validar tipo MIME (y tamaño máximo en el proxy) antes de subir; con presigned, el `Content-Type` queda firmado y el tamaño se controla en el cliente (compresión WebP).
+- Presigned URLs para escritura directa cliente→S3 (**implementado**, ver [[ADR-011 Subida directa con presigned URLs]]).
+- No exponer el bucket: solo CloudFront con OAC/signed URLs o el proxy autenticado.
 - Bucket versionado + lifecycle rules para costes.
 - Al ser la misma implementación S3 en todos los entornos, "carga real a AWS S3" solo exige cambiar `S3_ENDPOINT_URL` y credenciales: el código es idéntico en dev y prod.
 

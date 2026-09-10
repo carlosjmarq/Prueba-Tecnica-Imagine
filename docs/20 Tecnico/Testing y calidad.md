@@ -15,8 +15,8 @@ date: 2026-09-08
 | Unit               | Servicios de dominio (transiciones de estado, cálculo total) | pytest, `pytest-asyncio` |
 | API (integration)  | Endpoints con DB real (Postgres en Docker)      | `httpx.AsyncClient` + ASGITransport, fixture de sesión |
 | Auth               | Registro/login/refresh/logout, roles, rate limit| pytest + freeze_time            |
-| Realtime           | Conexión WS, auth en handshake, eventos por room, heartbeat y regresión "N WS no bloquean el REST" | `fastapi.testclient` con WS |
-| Storage            | S3Service contra MinIO en tests o stub boto3 (motoboto) | MinIO en runner / mocks |
+| Realtime           | Conexión WS, auth en handshake, eventos por room, heartbeat y regresión "N WS no bloquean el REST"; **el customer recibe `order.updated` cuando el driver actúa** | `fastapi.testclient` con WS |
+| Storage            | S3Service contra MinIO en tests (upload/get), presign + round-trip PUT→GET | MinIO en runner / mocks |
 
 Setup: DB de test dedicada, migraciones Alembic aplicadas al inicio, `pytest.ini` con `asyncio_mode=auto`, cobertura objetivo ≥ 80% en dominio.
 

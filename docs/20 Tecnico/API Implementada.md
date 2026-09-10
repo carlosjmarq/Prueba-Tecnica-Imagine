@@ -34,7 +34,8 @@ date: 2026-09-09
 ### Uploads (`/api/v1/uploads`)
 | Método | Ruta | Descripción |
 | ------ | ---- | ----------- |
-| POST | `/images` | Sube imagen a S3/MinIO (máx 5 MB, jpeg/png/webp) |
+| POST | `/presign` | Genera presigned PUT URL para subida directa a S3/MinIO ([[ADR-011 Subida directa con presigned URLs]]) |
+| POST | `/images` | Sube imagen a S3/MinIO (máx 5 MB, jpeg/png/webp) — fallback/proxy |
 | GET | `/images/{key}` | Proxy de lectura autenticado (ver [[ADR-009 Subida de imagenes proxy autenticado y comprobante de entrega]]) |
 
 ### Realtime
@@ -53,7 +54,7 @@ date: 2026-09-09
 
 ## Calidad
 
-- `pytest`: 32 tests verdes (auth, pedidos, WS, uploads, aislamiento, imágenes).
+- `pytest`: 37 tests verdes (auth, pedidos, WS, uploads, aislamiento, imágenes).
 - `ruff check`, `ruff format --check`, `mypy app`: sin errores.
 - Swagger disponible en `/docs`.
 

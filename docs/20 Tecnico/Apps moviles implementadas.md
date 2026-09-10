@@ -52,18 +52,19 @@ Bug detectado en pruebas manuales: tras logout + login con otro usuario, la list
 
 **Verificación**: tests de integración nuevos (aislamiento de lista entre usuarios, driver no asignado no ve detalle, driver sí ve PENDING) + widget test de cambio de sesión en cada app (`test/session_change_test.dart`, con `ApiClient` falso) + flujo E2E real confirmado.
 
-## Subida de imágenes (ADR-009)
+## Subida de imágenes (ADR-009 + ADR-011)
 
-Ver [[ADR-009 Subida de imagenes proxy autenticado y comprobante de entrega]]. Resumen:
+Ver [[ADR-009 Subida de imagenes proxy autenticado y comprobante de entrega]] y [[ADR-011 Subida directa con presigned URLs]]. Resumen:
 
-- **Customer**: foto por ítem (galería, `image_picker`), subida al enviar el formulario → `image_key`; thumbnail en el detalle.
-- **Driver**: comprobante de entrega obligatorio al pasar a `DELIVERED` → `delivery_proof_key`; thumbnail en la card.
+- **Customer**: foto por ítem (galería, `image_picker` con límites `maxWidth/maxHeight/quality`), **compresión WebP** (`flutter_image_compress`), subida **directa a S3/MinIO con presigned PUT URL** al enviar el formulario → `image_key`; **barra de progreso por imagen**; thumbnail en el detalle.
+- **Driver**: comprobante de entrega obligatorio al pasar a `DELIVERED` → compresión WebP → presign → PUT directo → `delivery_proof_key`; **barra de progreso** bajo el botón; thumbnail en la card.
 - **Lectura**: siempre por el proxy autenticado `GET /uploads/images/{key}` (funciona en emulador; `Image.network` con header Bearer).
+- **Red**: dio sin interceptor de auth para el PUT directo; reintentos con exponential backoff (0.5s→1s→2s) en fallos transitorios.
 
 ## Calidad
 
 - `flutter analyze`: limpio en shared, customer_app y driver_app.
-- `flutter test`: smoke de login + test de cambio de sesión por app + widget test de foto por ítem en customer (3 tests customer, 2 driver); backend 32 tests.
+- `flutter test`: smoke de login + test de cambio de sesión por app + widget test de foto por ítem en customer (3 tests customer, 2 driver); backend 37 tests.
 - `dart format`: aplicado en las tres.
 - Flujo E2E verificado contra la API real: register → login → crear → aceptar → PICKED_UP → DELIVERED (historial completo).
 
