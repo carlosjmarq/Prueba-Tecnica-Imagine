@@ -54,6 +54,15 @@ class S3StorageService:
     async def delete(self, key: str) -> None:
         await asyncio.to_thread(self._client.delete_object, Bucket=self._bucket, Key=key)
 
+    def presign_put(self, key: str, content_type: str, expires: int = 300) -> str:
+        """URL firmada para que el cliente suba directo a S3/MinIO (escritura)."""
+        url: str = self._client.generate_presigned_url(
+            "put_object",
+            Params={"Bucket": self._bucket, "Key": key, "ContentType": content_type},
+            ExpiresIn=expires,
+        )
+        return url
+
     def public_url(self, key: str) -> str:
         settings = get_settings()
         if settings.s3_endpoint_url:

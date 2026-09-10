@@ -1,13 +1,30 @@
+from uuid import uuid4
+
 from fastapi import APIRouter, HTTPException, Response, UploadFile
 
 from app.api.deps import CurrentUser, SessionDep
-from app.schemas import UploadResponse
+from app.schemas import PresignRequest, PresignResponse, UploadResponse
 from app.services.storage import build_key, get_storage
 
 router = APIRouter(prefix="/uploads", tags=["uploads"])
 
 MAX_SIZE = 5 * 1024 * 1024
 ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp"}
+_EXTENSIONS = {"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp"}
+
+
+@router.post("/presign", response_model=PresignResponse)
+async def presign_upload(user: CurrentUser, payload: PresignRequest) -> PresignResponse:
+    """Genera una URL firmada (PUT) para subir directo a S3/MinIO.
+
+    El Content-Type queda firmado: el cliente debe enviarlo exacto.
+    La validacion de tamano recae en el cliente (compresion local).
+    """
+    if payload.content_type not in ALLOWED_TYPES:
+        raise HTTPException(415, f"Tipo no permitido. Usa: {', '.join(sorted(ALLOWED_TYPES))}")
+    key = build_key(f"users/{user.id}/images/{uuid4()}{_EXTENSIONS[payload.content_type]}")
+    storage = get_storage()
+    return PresignResponse(key=key, url=storage.presign_put(key, payload.content_type))
 
 
 @router.post("/images", response_model=UploadResponse, status_code=201)

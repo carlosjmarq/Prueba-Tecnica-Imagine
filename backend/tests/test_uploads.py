@@ -1,5 +1,6 @@
 import io
 
+import httpx
 from fastapi.testclient import TestClient
 
 PNG = b"\x89PNG\r\n\x1a\n" + b"\x00" * 64
@@ -50,3 +51,54 @@ def test_get_image_not_found(client: TestClient, auth_headers: dict) -> None:
         headers=auth_headers["customer"],
     )
     assert resp.status_code == 404
+
+
+def test_presign_requires_auth(client: TestClient) -> None:
+    resp = client.post("/api/v1/uploads/presign", json={"content_type": "image/png"})
+    assert resp.status_code == 401
+
+
+def test_presign_rejects_unsupported_type(client: TestClient, auth_headers: dict) -> None:
+    resp = client.post(
+        "/api/v1/uploads/presign",
+        json={"content_type": "text/plain"},
+        headers=auth_headers["customer"],
+    )
+    assert resp.status_code == 415
+
+
+def test_presign_returns_put_url(client: TestClient, auth_headers: dict) -> None:
+    resp = client.post(
+        "/api/v1/uploads/presign",
+        json={"content_type": "image/png"},
+        headers=auth_headers["customer"],
+    )
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+    assert body["key"].startswith("users/")
+    assert body["key"] in body["url"]
+    # MinIO puede firmar con V2 (Signature=) o V4 (X-Amz-Signature).
+    assert "Signature" in body["url"]
+
+
+def test_presign_round_trip(client: TestClient, auth_headers: dict) -> None:
+    """Presign -> PUT directo a MinIO -> lectura por el proxy devuelve los bytes."""
+    presigned = client.post(
+        "/api/v1/uploads/presign",
+        json={"content_type": "image/png"},
+        headers=auth_headers["customer"],
+    ).json()
+    with httpx.Client(timeout=15) as http:
+        put = http.put(
+            presigned["url"],
+            content=PNG,
+            headers={"Content-Type": "image/png"},
+        )
+    assert put.status_code == 200, put.text
+
+    resp = client.get(
+        f"/api/v1/uploads/images/{presigned['key']}",
+        headers=auth_headers["customer"],
+    )
+    assert resp.status_code == 200, resp.text
+    assert resp.content == PNG

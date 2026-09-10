@@ -66,3 +66,46 @@ def test_many_ws_does_not_block_rest(client: TestClient, auth_headers: dict) -> 
     finally:
         for ws in sockets:
             ws.__exit__(None, None, None)
+
+
+def test_customer_receives_order_updated_on_driver_action(
+    client: TestClient, auth_headers: dict
+) -> None:
+    """Cuando el driver cambia el estado de una orden, el customer la recibe."""
+    cust_token = auth_headers["customer"]["Authorization"].replace("Bearer ", "")
+    with client.websocket_connect(f"/ws/orders?token={cust_token}") as cust_ws:
+        assert cust_ws.receive_json()["type"] == "connected"
+
+        created = client.post(
+            "/api/v1/orders",
+            json={
+                "pickup_address": "AAA",
+                "delivery_address": "BBB",
+                "items": [{"name": "Pizza", "price": 10.0, "quantity": 1}],
+            },
+            headers=auth_headers["customer"],
+        )
+        assert created.status_code == 201, created.text
+        oid = created.json()["id"]
+        assert cust_ws.receive_json()["type"] == "order.created"
+
+        assert (
+            client.post(f"/api/v1/orders/{oid}/accept", headers=auth_headers["driver"]).status_code
+            == 200
+        )
+        accepted = cust_ws.receive_json()
+        assert accepted["type"] == "order.updated"
+        assert accepted["order_id"] == oid
+        assert accepted["status"] == "ACCEPTED"
+
+        assert (
+            client.post(
+                f"/api/v1/orders/{oid}/status",
+                json={"status": "PICKED_UP"},
+                headers=auth_headers["driver"],
+            ).status_code
+            == 200
+        )
+        picked = cust_ws.receive_json()
+        assert picked["type"] == "order.updated"
+        assert picked["status"] == "PICKED_UP"
