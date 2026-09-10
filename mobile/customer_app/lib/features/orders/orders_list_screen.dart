@@ -5,48 +5,85 @@ import 'package:shared/shared.dart';
 import 'order_providers.dart';
 import 'order_detail_screen.dart';
 
-class OrdersListScreen extends ConsumerWidget {
+class OrdersListScreen extends ConsumerStatefulWidget {
   const OrdersListScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<OrdersListScreen> createState() => _OrdersListScreenState();
+}
+
+class _OrdersListScreenState extends ConsumerState<OrdersListScreen> {
+  static const _activeStatuses = {'PENDING', 'ACCEPTED', 'PICKED_UP'};
+  static const _completedStatuses = {'DELIVERED', 'CANCELLED'};
+
+  bool _completed = false;
+
+  @override
+  Widget build(BuildContext context) {
     final orders = ref.watch(myOrdersProvider);
     final theme = Theme.of(context);
+    final visible = orders.whenData(
+      (list) => list
+          .where((o) => _completed
+              ? _completedStatuses.contains(o.status)
+              : _activeStatuses.contains(o.status))
+          .toList(),
+    );
 
     return Scaffold(
       appBar: AppBar(title: const Text('Mis pedidos')),
-      body: orders.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child:
-                Text('Error al cargar: $e', style: theme.textTheme.bodyMedium),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: SegmentedButton<bool>(
+              segments: const [
+                ButtonSegment(value: false, label: Text('Activos')),
+                ButtonSegment(value: true, label: Text('Completados')),
+              ],
+              selected: {_completed},
+              onSelectionChanged: (selection) =>
+                  setState(() => _completed = selection.first),
+            ),
           ),
-        ),
-        data: (list) {
-          if (list.isEmpty) {
-            return Center(
-              child: Text(
-                'Aun no tienes pedidos.\nCrea uno desde la pestana Crear.',
-                textAlign: TextAlign.center,
-                style: theme.textTheme.bodyMedium,
+          Expanded(
+            child: visible.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, _) => Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text('Error al cargar: $e',
+                      style: theme.textTheme.bodyMedium),
+                ),
               ),
-            );
-          }
-          return RefreshIndicator(
-            onRefresh: () => ref.refresh(myOrdersProvider.future),
-            child: ListView.separated(
-              padding: const EdgeInsets.all(16),
-              itemCount: list.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
-              itemBuilder: (context, i) {
-                final order = list[i];
-                return _OrderCard(order: order);
+              data: (list) {
+                if (list.isEmpty) {
+                  return Center(
+                    child: Text(
+                      _completed
+                          ? 'Aun no tienes pedidos completados.'
+                          : 'Aun no tienes pedidos.\nCrea uno desde la pestana Crear.',
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodyMedium,
+                    ),
+                  );
+                }
+                return RefreshIndicator(
+                  onRefresh: () => ref.refresh(myOrdersProvider.future),
+                  child: ListView.separated(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: list.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    itemBuilder: (context, i) {
+                      final order = list[i];
+                      return _OrderCard(order: order);
+                    },
+                  ),
+                );
               },
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }
