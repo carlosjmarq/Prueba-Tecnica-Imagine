@@ -63,7 +63,16 @@ class ApiClient {
                 sendTimeout: const Duration(seconds: 60),
                 receiveTimeout: const Duration(seconds: 30),
               ),
-            ) {
+            ),
+        // Sin interceptor de auth: los PUT directos a S3/MinIO llevan la firma
+        // en la URL, no un header Authorization (romperia la firma).
+        _directDio = Dio(
+          BaseOptions(
+            connectTimeout: const Duration(seconds: 15),
+            sendTimeout: const Duration(seconds: 120),
+            receiveTimeout: const Duration(seconds: 60),
+          ),
+        ) {
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) {
@@ -101,6 +110,7 @@ class ApiClient {
   final Future<TokenPair> Function(String refreshToken) _refreshCall;
   final void Function(AuthSession session)? _onSessionRefreshed;
   final Dio _dio;
+  final Dio _directDio;
   Future<String?>? _refreshInFlight;
 
   Future<TokenPair> login(String email, String password) async {
@@ -199,33 +209,64 @@ class ApiClient {
     return Order.fromJson(res.data!);
   }
 
-  /// Sube una imagen y devuelve su key + url (multipart/form-data).
-  /// Reintenta ante fallos transitorios (timeout / red / 5xx).
+  /// Pide una URL firmada (PUT) para subir una imagen directo a S3/MinIO.
+  Future<UploadResult> presignUpload({required String contentType}) async {
+    final res = await _dio.post<Map<String, dynamic>>(
+      '/api/v1/uploads/presign',
+      data: {'content_type': contentType},
+    );
+    return UploadResult.fromJson(res.data!);
+  }
+
+  /// Sube bytes directo a la URL firmada (S3/MinIO). Reintenta con backoff.
+  Future<void> uploadDirect({
+    required String url,
+    required List<int> bytes,
+    required String contentType,
+    void Function(int sent, int total)? onSendProgress,
+  }) {
+    return _withRetry<void>(() => _directDio.put<void>(
+          url,
+          data: bytes,
+          options: Options(contentType: contentType),
+          onSendProgress: onSendProgress,
+        ));
+  }
+
+  /// Sube una imagen y devuelve su key + url (multipart/form-data, fallback).
   Future<UploadResult> uploadImage({
     required List<int> bytes,
     required String filename,
     String? contentType,
-  }) async {
-    FormData buildForm() => FormData.fromMap({
-          'file': MultipartFile.fromBytes(
-            bytes,
-            filename: filename,
-            contentType:
-                contentType == null ? null : DioMediaType.parse(contentType),
-          ),
-        });
+  }) {
+    return _withRetry(() async {
+      final form = FormData.fromMap({
+        'file': MultipartFile.fromBytes(
+          bytes,
+          filename: filename,
+          contentType:
+              contentType == null ? null : DioMediaType.parse(contentType),
+        ),
+      });
+      final res = await _dio.post<Map<String, dynamic>>(
+        '/api/v1/uploads/images',
+        data: form,
+      );
+      return UploadResult.fromJson(res.data!);
+    });
+  }
+
+  Future<T> _withRetry<T>(Future<T> Function() action) async {
     Object? lastError;
     for (var attempt = 0; attempt < 3; attempt++) {
       try {
-        final res = await _dio.post<Map<String, dynamic>>(
-          '/api/v1/uploads/images',
-          data: buildForm(),
-        );
-        return UploadResult.fromJson(res.data!);
+        return await action();
       } catch (e) {
         lastError = e;
         if (!_isRetryable(e) || attempt == 2) rethrow;
-        await Future<void>.delayed(Duration(milliseconds: 500 * (attempt + 1)));
+        // Exponential backoff: 500ms, 1s, 2s.
+        await Future<void>.delayed(
+            Duration(milliseconds: 500 * (1 << attempt)));
       }
     }
     throw lastError!;
