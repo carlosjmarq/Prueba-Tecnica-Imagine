@@ -11,11 +11,22 @@ final availableOrdersProvider = FutureProvider<List<Order>>((ref) async {
   return api.availableOrders();
 });
 
-/// Pedidos asignados a mí.
+/// Pedidos asignados en curso (ACCEPTED / PICKED_UP).
 final myOrdersProvider = FutureProvider<List<Order>>((ref) async {
   ref.watch(authSessionProvider);
   final api = ref.watch(apiClientProvider);
-  return api.myAssignedOrders();
+  final orders = await api.myAssignedOrders();
+  return orders
+      .where((o) => o.status == 'ACCEPTED' || o.status == 'PICKED_UP')
+      .toList();
+});
+
+/// Pedidos ya entregados (historial del driver).
+final historyOrdersProvider = FutureProvider<List<Order>>((ref) async {
+  ref.watch(authSessionProvider);
+  final api = ref.watch(apiClientProvider);
+  final orders = await api.myAssignedOrders();
+  return orders.where((o) => o.status == 'DELIVERED').toList();
 });
 
 /// Escucha eventos realtime y refresca las listas.
@@ -25,6 +36,7 @@ final realtimeListenerProvider = Provider<void>((ref) {
       if (event.isOrderCreated || event.isOrderUpdate) {
         ref.invalidate(availableOrdersProvider);
         ref.invalidate(myOrdersProvider);
+        ref.invalidate(historyOrdersProvider);
       }
     });
   });
@@ -45,6 +57,7 @@ class OrderActionController extends StateNotifier<AsyncValue<Order?>> {
       state = const AsyncValue.data(null);
       _ref.invalidate(availableOrdersProvider);
       _ref.invalidate(myOrdersProvider);
+      _ref.invalidate(historyOrdersProvider);
       return true;
     } catch (e) {
       state = AsyncValue.error(ApiClient.mapError(e), StackTrace.current);
@@ -68,6 +81,7 @@ class OrderActionController extends StateNotifier<AsyncValue<Order?>> {
       state = const AsyncValue.data(null);
       _ref.invalidate(availableOrdersProvider);
       _ref.invalidate(myOrdersProvider);
+      _ref.invalidate(historyOrdersProvider);
       return true;
     } catch (e) {
       state = AsyncValue.error(ApiClient.mapError(e), StackTrace.current);

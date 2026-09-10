@@ -47,6 +47,7 @@ class AuthController extends StateNotifier<AsyncValue<User?>> {
     _ref.read(currentUserProvider.notifier).state = null;
     _ref.invalidate(availableOrdersProvider);
     _ref.invalidate(myOrdersProvider);
+    _ref.invalidate(historyOrdersProvider);
     state = const AsyncValue.data(null);
   }
 }
