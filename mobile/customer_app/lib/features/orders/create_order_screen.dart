@@ -15,6 +15,7 @@ typedef _ItemDraft = ({
   Uint8List? imageBytes,
   String? imageName,
   String? imageContentType,
+  double? uploadProgress,
 });
 
 class CreateOrderScreen extends ConsumerStatefulWidget {
@@ -50,9 +51,20 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
         imageBytes: null,
         imageName: null,
         imageContentType: null,
+        uploadProgress: null,
       ));
     });
   }
+
+  static _ItemDraft _copyWithProgress(_ItemDraft item, double? progress) => (
+        name: item.name,
+        price: item.price,
+        qty: item.qty,
+        imageBytes: item.imageBytes,
+        imageName: item.imageName,
+        imageContentType: item.imageContentType,
+        uploadProgress: progress,
+      );
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
@@ -68,19 +80,28 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
 
     setState(() => _submitting = true);
     try {
-      // Sube las fotos de los items y arma el payload con image_key.
+      // Presign -> PUT directo a S3/MinIO con progreso por imagen.
       final api = ref.read(apiClientProvider);
       final parsed = <Map<String, dynamic>>[];
-      for (final item in _items) {
+      for (var i = 0; i < _items.length; i++) {
+        final item = _items[i];
         String? imageKey;
         final bytes = item.imageBytes;
         if (bytes != null) {
-          final upload = await api.uploadImage(
+          final ct = item.imageContentType ?? 'image/webp';
+          final presigned = await api.presignUpload(contentType: ct);
+          await api.uploadDirect(
+            url: presigned.url,
             bytes: bytes,
-            filename: item.imageName ?? 'item.jpg',
-            contentType: item.imageContentType,
+            contentType: ct,
+            onSendProgress: (sent, total) {
+              if (!mounted || total <= 0) return;
+              setState(() {
+                _items[i] = _copyWithProgress(_items[i], sent / total);
+              });
+            },
           );
-          imageKey = upload.key;
+          imageKey = presigned.key;
         }
         parsed.add({
           'name': item.name.trim(),
@@ -255,6 +276,7 @@ class _ItemEditorState extends State<_ItemEditor> {
       imageContentType: clearImage
           ? null
           : (imageContentType ?? widget.initial.imageContentType),
+      uploadProgress: null,
     ));
   }
 
@@ -262,14 +284,17 @@ class _ItemEditorState extends State<_ItemEditor> {
     final picked = await ImagePicker().pickImage(
       source: ImageSource.gallery,
       maxWidth: 1080,
+      maxHeight: 1920,
       imageQuality: 70,
     );
     if (picked == null) return;
-    final bytes = await picked.readAsBytes();
+    final original = await picked.readAsBytes();
+    final compressed = await compressImage(original);
+    final isWebp = compressed.length < original.length;
     _emit(
-      imageBytes: bytes,
-      imageName: picked.name,
-      imageContentType: _contentTypeFor(picked),
+      imageBytes: compressed,
+      imageName: isWebp ? 'item.webp' : picked.name,
+      imageContentType: isWebp ? 'image/webp' : _contentTypeFor(picked),
     );
   }
 
@@ -368,6 +393,16 @@ class _ItemEditorState extends State<_ItemEditor> {
                   ),
               ],
             ),
+            if (widget.initial.uploadProgress != null) ...[
+              const SizedBox(height: 8),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: LinearProgressIndicator(
+                  value: widget.initial.uploadProgress,
+                  minHeight: 6,
+                ),
+              ),
+            ],
           ],
         ),
       ),
