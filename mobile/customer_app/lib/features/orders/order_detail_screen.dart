@@ -75,9 +75,12 @@ class OrderDetailScreen extends ConsumerWidget {
                         .map((item) => Padding(
                               padding: const EdgeInsets.symmetric(vertical: 4),
                               child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
                                 children: [
+                                  if (item.imageKey != null) ...[
+                                    _RemoteImage(
+                                        imageKey: item.imageKey!, size: 40),
+                                    const SizedBox(width: 8),
+                                  ],
                                   Expanded(
                                     child:
                                         Text('${item.quantity} x ${item.name}'),
@@ -107,6 +110,22 @@ class OrderDetailScreen extends ConsumerWidget {
                   ),
                 ),
               ),
+              if (order.deliveryProofKey != null) ...[
+                const SizedBox(height: 16),
+                Text('Comprobante de entrega',
+                    style: theme.textTheme.titleLarge),
+                const SizedBox(height: 8),
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: _RemoteImage(
+                          imageKey: order.deliveryProofKey!, size: 160),
+                    ),
+                  ),
+                ),
+              ],
               if (order.isPending) ...[
                 const SizedBox(height: 24),
                 OutlinedButton.icon(
@@ -157,6 +176,36 @@ class OrderDetailScreen extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Miniatura de una imagen servida por el proxy autenticado del backend.
+class _RemoteImage extends ConsumerWidget {
+  const _RemoteImage({required this.imageKey, required this.size});
+
+  final String imageKey;
+  final double size;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final api = ref.watch(apiClientProvider);
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: Image.network(
+        api.imageUrl(imageKey),
+        headers: api.authHeaders(),
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => Container(
+          width: size,
+          height: size,
+          color: AppColors.muted,
+          child: const Icon(Icons.broken_image_outlined,
+              size: 20, color: AppColors.secondary),
+        ),
+      ),
     );
   }
 }
