@@ -70,16 +70,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Validate docker-compose
-        run: docker compose -f docker-compose.base.yml config --quiet
+        run: |
+          docker compose -f docker-compose.base.yml config --quiet
+          docker compose -f docker-compose.yml config --quiet
       - uses: opentofu/setup-opentofu@v1
         with:
           tofu_version: 1.12.6
-      - name: Tofu validate (si hay config)
+      - name: Tofu fmt
+        run: tofu fmt -check -recursive terraform
+      - name: Tofu validate
+        working-directory: terraform/envs/dev
         run: |
-          if [ -d "terraform" ]; then
-            cd terraform
-            tofu init -backend=false
-            tofu validate
-          else
-            echo "Sin config Terraform aún; skip validate."
-          fi
+          tofu init -backend=false
+          tofu validate

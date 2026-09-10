@@ -1,0 +1,73 @@
+# Compose full de desarrollo: PostgreSQL + MinIO + API.
+# Uso:  docker compose -f infra/docker-compose.yml up --build
+# La API usa MinIO como backend S3 local.
+name: imagine-delivery
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: imagine-delivery-postgres
+    environment:
+      POSTGRES_USER: imagine_delivery
+      POSTGRES_PASSWORD: imagine_delivery_dev
+      POSTGRES_DB: imagine_delivery
+    ports:
+      - "5434:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U imagine_delivery -d imagine_delivery"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  minio:
+    image: minio/minio:latest
+    container_name: imagine-delivery-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - miniodata:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: imagine-delivery-api
+    ports:
+      - "8000:8000"
+    environment:
+      APP_NAME: delivery-api
+      ENVIRONMENT: development
+      DEBUG: "true"
+      DATABASE_URL: postgresql+asyncpg://imagine_delivery:imagine_delivery_dev@postgres:5432/imagine_delivery
+      SECRET_KEY: dev-secret-change-me
+      ACCESS_TOKEN_EXPIRE_MINUTES: "15"
+      REFRESH_TOKEN_EXPIRE_DAYS: "7"
+      STORAGE_BACKEND: s3
+      S3_ENDPOINT_URL: http://minio:9000
+      S3_BUCKET: delivery-media
+      S3_REGION: us-east-1
+      S3_ACCESS_KEY: minioadmin
+      S3_SECRET_KEY: minioadmin
+      RATE_LIMIT_PER_MINUTE: "60"
+      CORS_ORIGINS: '["*"]'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  miniodata:

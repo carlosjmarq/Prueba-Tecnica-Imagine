@@ -7,12 +7,20 @@ tofu.*.backup
 terraform.tfvars
 *.tfvars
 !*.example.tfvars
+baseline.json
+tfplan
 
 # Env / secretos
 .env
 .env.*
 *.pem
 *.key
+
+# Lambda build artifacts
+functions/order_timeout_canceller/package/*
+!functions/order_timeout_canceller/package/.gitkeep
+functions/order_timeout_canceller/_build/*
+!functions/order_timeout_canceller/_build/.gitkeep
 
 # Docker
 *.log

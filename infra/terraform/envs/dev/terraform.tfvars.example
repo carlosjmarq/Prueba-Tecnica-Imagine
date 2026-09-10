@@ -1,0 +1,7 @@
+environment   = "dev"
+region        = "eu-west-1"
+project_prefix = "delivery"
+
+# Reemplazar por un valor real antes de apply. No commitear este archivo.
+db_password = "change-me-dev-password"
+sns_email   = "change-me@example.com"
