@@ -24,6 +24,7 @@ class Order(Base):
     delivery_address: Mapped[str] = mapped_column(Text)
     total_amount: Mapped[Decimal] = mapped_column(Numeric(12, 2), default=Decimal("0.00"))
     notes: Mapped[str | None] = mapped_column(Text)
+    delivery_proof_key: Mapped[str | None] = mapped_column(String(255), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()

@@ -168,10 +168,16 @@ async def accept_order(session: AsyncSession, order: Order, driver: User) -> Ord
 
 
 async def update_order_status(
-    session: AsyncSession, order: Order, to_status: OrderStatus, actor: User
+    session: AsyncSession,
+    order: Order,
+    to_status: OrderStatus,
+    actor: User,
+    delivery_proof_key: str | None = None,
 ) -> Order:
     if order.driver_id != actor.id:
         raise DomainError("Solo el driver asignado puede actualizar este pedido", 403)
+    if delivery_proof_key is not None:
+        order.delivery_proof_key = delivery_proof_key
     return await _transition(session, order, to_status, actor)
 
 

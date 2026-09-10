@@ -105,7 +105,9 @@ async def update_status(
     if order is None:
         raise HTTPException(404, "Pedido no encontrado")
     try:
-        order = await update_order_status(session, order, payload.status, user)
+        order = await update_order_status(
+            session, order, payload.status, user, payload.delivery_proof_key
+        )
     except DomainError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.message) from None
     return await _reload(session, order)

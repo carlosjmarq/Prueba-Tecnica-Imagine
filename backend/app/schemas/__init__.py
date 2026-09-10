@@ -68,6 +68,7 @@ class OrderRead(BaseModel):
     delivery_address: str
     total_amount: float
     notes: str | None
+    delivery_proof_key: str | None = None
     created_at: datetime
     updated_at: datetime
     items: list[OrderItemRead]
@@ -90,6 +91,7 @@ class OrderCreate(BaseModel):
 
 class OrderUpdateStatus(BaseModel):
     status: OrderStatus
+    delivery_proof_key: str | None = Field(default=None, max_length=255)
 
 
 class UploadResponse(BaseModel):

@@ -198,3 +198,36 @@ def test_driver_can_see_detail_of_pending_available(client: TestClient, auth_hea
     resp = client.get(f"/api/v1/orders/{order['id']}", headers=auth_headers["driver"])
     assert resp.status_code == 200
     assert resp.json()["status"] == "PENDING"
+
+
+def test_driver_sets_delivery_proof_on_delivered(client: TestClient, auth_headers: dict) -> None:
+    """El driver asignado adjunta el comprobante de entrega al marcar DELIVERED."""
+    order = _create_order(client, auth_headers["customer"])
+    client.post(f"/api/v1/orders/{order['id']}/accept", headers=auth_headers["driver"])
+    client.post(
+        f"/api/v1/orders/{order['id']}/status",
+        json={"status": "PICKED_UP"},
+        headers=auth_headers["driver"],
+    )
+    proof = f"users/driver/images/entrega-{order['id']}.png"
+    resp = client.post(
+        f"/api/v1/orders/{order['id']}/status",
+        json={"status": "DELIVERED", "delivery_proof_key": proof},
+        headers=auth_headers["driver"],
+    )
+    assert resp.status_code == 200, resp.text
+    assert resp.json()["status"] == "DELIVERED"
+    assert resp.json()["delivery_proof_key"] == proof
+
+
+def test_item_image_key_persisted(client: TestClient, auth_headers: dict) -> None:
+    """La imagen por item se guarda al crear el pedido."""
+    payload = {
+        **ORDER_PAYLOAD,
+        "items": [
+            {"name": "Pizza", "price": 10.0, "quantity": 1, "image_key": "users/x/images/p.png"}
+        ],
+    }
+    resp = client.post("/api/v1/orders", json=payload, headers=auth_headers["customer"])
+    assert resp.status_code == 201, resp.text
+    assert resp.json()["items"][0]["image_key"] == "users/x/images/p.png"

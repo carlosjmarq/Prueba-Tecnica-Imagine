@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, UploadFile
+from fastapi import APIRouter, HTTPException, Response, UploadFile
 
 from app.api.deps import CurrentUser, SessionDep
 from app.schemas import UploadResponse
@@ -24,3 +24,14 @@ async def upload_image(user: CurrentUser, session: SessionDep, file: UploadFile)
     except Exception as exc:  # boto3 errors
         raise HTTPException(500, f"Error subiendo a S3: {exc}") from None
     return UploadResponse(key=key, url=storage.public_url(key))
+
+
+@router.get("/images/{key:path}")
+async def get_image(key: str, user: CurrentUser) -> Response:
+    """Proxy de lectura autenticado. En prod las imagenes se sirven por CloudFront."""
+    storage = get_storage()
+    try:
+        data, content_type = await storage.get(key)
+    except Exception:  # boto3: NoSuchKey / accesos
+        raise HTTPException(404, "Imagen no encontrada") from None
+    return Response(content=data, media_type=content_type)

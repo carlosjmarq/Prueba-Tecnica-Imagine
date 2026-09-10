@@ -29,6 +29,12 @@ class S3StorageService:
         self._client.put_object(Bucket=self._bucket, Key=key, Body=data, ContentType=content_type)
         return key
 
+    async def get(self, key: str) -> tuple[bytes, str]:
+        obj = self._client.get_object(Bucket=self._bucket, Key=key)
+        data: bytes = obj["Body"].read()
+        content_type: str = obj.get("ContentType", "application/octet-stream")
+        return data, content_type
+
     async def delete(self, key: str) -> None:
         self._client.delete_object(Bucket=self._bucket, Key=key)
 
