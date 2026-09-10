@@ -23,7 +23,7 @@ date: 2026-09-09
 
 - **Auth**: Login/Registro con validación y estados de carga/error (login_screen + auth_providers). La sesión guarda tokens + `User` (via `/me`); el perfil muestra nombre y email reales.
 - **Home**: bottom nav (Pedidos / Crear / Perfil) con `IndexedStack`.
-- **Pedidos**: lista con filtro **Activos / Completados** (pull-to-refresh, chips de estado), detalle (items con thumbnail, historial, cancelar si PENDING, comprobante de entrega si DELIVERED), crear (items dinámicos con **foto opcional por ítem** vía `image_picker`; la foto se sube al enviar el formulario y se manda como `image_key`).
+- **Pedidos**: lista con filtro **Activos / Completados** (tabs de ancho fijo, pull-to-refresh, chips de estado), detalle (items con thumbnail, historial, cancelar si PENDING, comprobante de entrega si DELIVERED), crear (items dinámicos con **foto opcional por ítem** vía `image_picker`; la foto se sube al enviar el formulario y se manda como `image_key`).
 - **Realtime**: `realtimeEventsProvider` escucha el socket e invalida lista/detalle al recibir `order.updated`.
 
 ## Driver App (`mobile/driver_app`)

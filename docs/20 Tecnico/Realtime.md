@@ -37,6 +37,7 @@ El cliente envía `ping` periódicamente (20 s) y el servidor responde `pong`; a
 - Emisión acoplada al servicio de pedidos: cada transición de estado válida (ver [[API Pedidos y estados]]) dispara `manager.send_to_room(...)`.
 - Reconexión: el cliente reconecta con backoff; al reconectarse re-suscribe a rooms; el estado verdadero siempre llega por REST (el WS es un delta).
 - Heartbeat bidireccional: cliente `ping` cada 20 s (reconecta si no llega `pong` en 10 s); servidor `ping` tras 60 s de silencio. La conexión muerta se limpia en `finally` (rooms + sesión de BD ya liberada).
+- **Robustez del cliente**: el error de handshake (`ready`) se captura (sin excepciones no manejadas); la reconexión usa **backoff exponencial** (1s → 30s máx) para evitar tormentas; y al refrescar el token (REST) la sesión se reemplaza para que el socket se reconecte con el token nuevo (ver [[ADR-010 WebSocket robusto heartbeat y sin sesion por conexion]]).
 
 ## En producción (AWS)
 

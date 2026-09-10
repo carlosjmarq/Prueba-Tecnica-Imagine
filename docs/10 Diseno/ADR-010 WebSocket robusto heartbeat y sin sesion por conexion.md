@@ -49,6 +49,15 @@ Se consideró migrar a **Socket.IO** para "arreglar" el realtime.
 
 - Se añadió `test_many_ws_does_not_block_rest` y `test_ws_heartbeat_ping` como regresión.
 
+## Ampliación (segunda ronda E2E)
+
+Tras una segunda ronda de pruebas se endureció el cliente y el storage:
+
+- **Refresh deduplicado**: una sola renovación en vuelo (`_refreshInFlight`) evita que 401 concurrentes roten el mismo refresh token e invaliden la sesión (errores intermitentes en acciones como cambiar estado).
+- **El socket reconecta con token fresco**: al refrescar, la sesión se reemplaza (nuevo objeto) y `orderSocketProvider` se reconstruye; además se captura el error de `ready` (sin excepciones no manejadas) y la reconexión usa backoff exponencial (1s→30s).
+- **Storage en thread**: `S3StorageService` usa `asyncio.to_thread` y un cliente cacheado, evitando bloquear el event loop en uploads/lecturas.
+- **Uploads robustos**: `sendTimeout`/`receiveTimeout` mayores en dio, reintento (3 intentos) en fallos transitorios y compresión de imagen más agresiva (`maxWidth 1080`, `quality 70`).
+
 ## Relaciones
 
 - **MOC:** [[00 Inbox/MOC]]
