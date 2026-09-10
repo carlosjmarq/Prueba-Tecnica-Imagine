@@ -36,6 +36,7 @@ erDiagram
         string delivery_address
         numeric total_amount
         text notes
+        string delivery_proof_key "nullable -> StorageService"
         timestamptz created_at
         timestamptz updated_at
     }
@@ -45,7 +46,7 @@ erDiagram
         string name
         numeric price
         int quantity
-        uuid image_id FK "nullable -> StorageService"
+        string image_key "nullable -> StorageService"
     }
     ORDER_STATUS_HISTORY {
         uuid id PK
@@ -91,6 +92,7 @@ erDiagram
 | delivery_address | TEXT        |                                    |
 | total_amount     | NUMERIC(12,2)| calculado en el dominio            |
 | notes            | TEXT        | opcional                           |
+| delivery_proof_key | VARCHAR(255)| comprobante de entrega (nullable) |
 | created_at       | TIMESTAMPTZ  |                                    |
 | updated_at       | TIMESTAMPTZ  |                                    |
 
@@ -98,7 +100,7 @@ erDiagram
 
 ### `order_items`
 
-Artículos del pedido: `name`, `price`, `quantity`, `image_id` (opcional, referencia a objeto en S3/MinIO, ver [[StorageService]]).
+Artículos del pedido: `name`, `price`, `quantity`, `image_key` (opcional, clave del objeto en S3/MinIO, ver [[StorageService]]).
 
 ### `order_status_history`
 

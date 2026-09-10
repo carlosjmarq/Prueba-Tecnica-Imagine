@@ -6,13 +6,14 @@ date: 2026-09-08
 
 # StorageService
 
-> Servicio de almacenamiento de imágenes de ítems de pedido. **Siempre apunta a S3** (misma implementación en todos los entornos); en desarrollo el endpoint S3 lo emula MinIO/LocalStack.
+> Servicio de almacenamiento de imágenes de ítems de pedido y comprobantes de entrega. **Siempre apunta a S3** (misma implementación en todos los entornos); en desarrollo el endpoint S3 lo emula MinIO/LocalStack.
 
 ## Contrato
 
 ```python
 class StorageService(Protocol):
     async def upload(self, key: str, data: bytes, content_type: str) -> str: ...
+    async def get(self, key: str) -> tuple[bytes, str]: ...
     async def delete(self, key: str) -> None: ...
     def public_url(self, key: str) -> str: ...
 ```
@@ -43,9 +44,11 @@ El `endpoint_url` se omite en producción para usar el endpoint real de AWS S3. 
 | Método | Ruta                      | Uso                          |
 | ------ | ------------------------- | ---------------------------- |
 | POST   | `/api/v1/uploads/images`  | Subir imagen → devuelve `key` + URL |
-| GET    | `/api/v1/uploads/images/{key}` | Proxy de lectura (dev); en prod se sirve por CloudFront |
+| GET    | `/api/v1/uploads/images/{key}` | **Proxy de lectura autenticado** (implementado) |
 
-Las imágenes se sirven por **CloudFront** con origen S3 (ver [[S3 y CloudFront]]): el `public_url` devuelve la URL de CloudFront en todos los entornos (en dev, la URL de MinIO o el proxy local).
+La lectura **en la app** se hace siempre por el proxy autenticado `GET /uploads/images/{key}` (requiere Bearer): funciona desde el emulador (`10.0.2.2`) y mantiene el bucket privado. En producción las imágenes se sirven por **CloudFront** con origen S3 y OAC (ver [[S3 y CloudFront]]); el `public_url` devuelve la URL de CloudFront en todos los entornos (en dev, la URL de MinIO).
+
+> Decisión completa en [[ADR-009 Subida de imagenes proxy autenticado y comprobante de entrega]].
 
 ## Buenas prácticas
 

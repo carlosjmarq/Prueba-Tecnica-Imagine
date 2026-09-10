@@ -18,7 +18,7 @@ PENDING ──acepta driver──▶ ACCEPTED ──recoge──▶ PICKED_UP �
 
 - `PENDING`: visible para todos los drivers disponibles.
 - `ACCEPTED`: asignado a un driver (`driver_id` set). Deja de ser "disponible".
-- `PICKED_UP` → `DELIVERED`: solo el driver asignado puede transicionar.
+- `PICKED_UP` → `DELIVERED`: solo el driver asignado puede transicionar. Puede adjuntar `delivery_proof_key` (comprobante de entrega, ver [[ADR-009 Subida de imagenes proxy autenticado y comprobante de entrega]]).
 - `CANCELLED`: solo desde `PENDING` y por el customer o admin.
 - Cada transición se persiste en `order_status_history` y **emite un evento realtime** ([[Realtime]]).
 
@@ -39,7 +39,7 @@ PENDING ──acepta driver──▶ ACCEPTED ──recoge──▶ PICKED_UP �
 | ------ | ------------------------------- | ------------------------------------- |
 | GET    | `/api/v1/orders/available`      | Pedidos `PENDING` disponibles         |
 | POST   | `/api/v1/orders/{id}/accept`    | Aceptar pedido (→ `ACCEPTED`)         |
-| POST   | `/api/v1/orders/{id}/status`    | Actualizar estado (`PICKED_UP`, `DELIVERED`) |
+| POST   | `/api/v1/orders/{id}/status`    | Actualizar estado (`PICKED_UP`, `DELIVERED`), con `delivery_proof_key` opcional |
 | GET    | `/api/v1/orders/mine`           | Pedidos asignados a mí                |
 
 ## Esquemas Pydantic (resumen)
@@ -49,7 +49,7 @@ class OrderCreate(BaseModel):
     pickup_address: str
     delivery_address: str
     notes: str | None = None
-    items: list[OrderItemCreate]  # name, price, quantity, image_id?
+    items: list[OrderItemCreate]  # name, price, quantity, image_key?
 
 class OrderRead(BaseModel):
     id: UUID
@@ -57,9 +57,15 @@ class OrderRead(BaseModel):
     customer_id: UUID
     driver_id: UUID | None
     total_amount: Decimal
+    notes: str | None
+    delivery_proof_key: str | None  # comprobante del driver
     items: list[OrderItemRead]
     history: list[StatusHistoryRead]  # en detalle
     created_at: datetime
+
+class OrderUpdateStatus(BaseModel):
+    status: OrderStatus
+    delivery_proof_key: str | None = None  # obligatorio en app, opcional en API
 ```
 
 ## Concurrencia

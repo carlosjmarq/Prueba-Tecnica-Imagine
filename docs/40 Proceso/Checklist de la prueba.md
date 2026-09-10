@@ -28,7 +28,8 @@ date: 2026-09-08
 ## Infraestructura cloud (obligatorio)
 
 - [ ] README explica cómo desplegar PostgreSQL en AWS RDS (instancia, backups, HA) ([[RDS PostgreSQL]])
-- [ ] StorageService para imágenes: siempre S3 (MinIO en dev, AWS S3 en prod) ([[StorageService]])
+- [x] StorageService para imágenes: siempre S3 (MinIO en dev, AWS S3 en prod) ([[StorageService]])
+- [x] Subida de imágenes en las apps: foto por ítem (customer) y comprobante de entrega (driver) ([[ADR-009 Subida de imagenes proxy autenticado y comprobante de entrega]])
 - [ ] Diagrama de arquitectura: EC2, RDS, S3, CloudFront, Load Balancer, WebSocket, Security Groups ([[Arquitectura AWS]])
 - [ ] Proyecto dockerizado ([[Docker y despliegue]])
 

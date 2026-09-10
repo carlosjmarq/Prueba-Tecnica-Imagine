@@ -29,12 +29,13 @@ date: 2026-09-09
 | GET | `/{id}` | Detalle (con items + historial) |
 | POST | `/{id}/cancel` | Customer: cancelar si PENDING |
 | POST | `/{id}/accept` | Driver: aceptar |
-| POST | `/{id}/status` | Driver asignado: PICKED_UP/DELIVERED |
+| POST | `/{id}/status` | Driver asignado: PICKED_UP/DELIVERED (+ `delivery_proof_key` opcional) |
 
 ### Uploads (`/api/v1/uploads`)
 | Método | Ruta | Descripción |
 | ------ | ---- | ----------- |
 | POST | `/images` | Sube imagen a S3/MinIO (máx 5 MB, jpeg/png/webp) |
+| GET | `/images/{key}` | Proxy de lectura autenticado (ver [[ADR-009 Subida de imagenes proxy autenticado y comprobante de entrega]]) |
 
 ### Realtime
 | Ruta | Descripción |
@@ -52,7 +53,7 @@ date: 2026-09-09
 
 ## Calidad
 
-- `pytest`: 22 tests verdes (auth, pedidos, WS, uploads).
+- `pytest`: 30 tests verdes (auth, pedidos, WS, uploads, aislamiento, imágenes).
 - `ruff check`, `ruff format --check`, `mypy app`: sin errores.
 - Swagger disponible en `/docs`.
 
