@@ -261,8 +261,8 @@ class _MyOrderCardState extends ConsumerState<_MyOrderCard> {
     final messenger = ScaffoldMessenger.of(context);
     final picked = await ImagePicker().pickImage(
       source: ImageSource.gallery,
-      maxWidth: 1280,
-      imageQuality: 85,
+      maxWidth: 1080,
+      imageQuality: 70,
     );
     if (picked == null) return null;
     final bytes = await picked.readAsBytes();
