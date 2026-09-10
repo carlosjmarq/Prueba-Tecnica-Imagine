@@ -33,6 +33,18 @@ class TokenPair {
       );
 }
 
+class UploadResult {
+  const UploadResult({required this.key, required this.url});
+
+  final String key;
+  final String url;
+
+  factory UploadResult.fromJson(Map<String, dynamic> json) => UploadResult(
+        key: json['key'] as String,
+        url: json['url'] as String,
+      );
+}
+
 class OrderItem {
   const OrderItem({
     required this.id,
@@ -90,6 +102,7 @@ class Order {
     required this.deliveryAddress,
     required this.totalAmount,
     this.notes,
+    this.deliveryProofKey,
     required this.createdAt,
     required this.items,
     required this.history,
@@ -103,6 +116,7 @@ class Order {
   final String deliveryAddress;
   final double totalAmount;
   final String? notes;
+  final String? deliveryProofKey;
   final DateTime createdAt;
   final List<OrderItem> items;
   final List<StatusHistory> history;
@@ -119,6 +133,7 @@ class Order {
         deliveryAddress: json['delivery_address'] as String,
         totalAmount: (json['total_amount'] as num).toDouble(),
         notes: json['notes'] as String?,
+        deliveryProofKey: json['delivery_proof_key'] as String?,
         createdAt: DateTime.parse(json['created_at'] as String).toLocal(),
         items: (json['items'] as List<dynamic>)
             .map((e) => OrderItem.fromJson(e as Map<String, dynamic>))

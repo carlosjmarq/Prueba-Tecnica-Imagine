@@ -179,12 +179,49 @@ class ApiClient {
     return Order.fromJson(res.data!);
   }
 
-  Future<Order> updateOrderStatus(String orderId, String status) async {
+  Future<Order> updateOrderStatus(
+    String orderId,
+    String status, {
+    String? deliveryProofKey,
+  }) async {
     final res = await _dio.post<Map<String, dynamic>>(
       '/api/v1/orders/$orderId/status',
-      data: {'status': status},
+      data: {
+        'status': status,
+        if (deliveryProofKey != null) 'delivery_proof_key': deliveryProofKey,
+      },
     );
     return Order.fromJson(res.data!);
+  }
+
+  /// Sube una imagen y devuelve su key + url (multipart/form-data).
+  Future<UploadResult> uploadImage({
+    required List<int> bytes,
+    required String filename,
+    String? contentType,
+  }) async {
+    final form = FormData.fromMap({
+      'file': MultipartFile.fromBytes(
+        bytes,
+        filename: filename,
+        contentType:
+            contentType == null ? null : DioMediaType.parse(contentType),
+      ),
+    });
+    final res = await _dio.post<Map<String, dynamic>>(
+      '/api/v1/uploads/images',
+      data: form,
+    );
+    return UploadResult.fromJson(res.data!);
+  }
+
+  /// URL del proxy autenticado de imagenes para un key de StorageService.
+  String imageUrl(String key) => '${config.baseUrl}/api/v1/uploads/images/$key';
+
+  /// Headers con el Bearer actual, para usar en `Image.network`.
+  Map<String, String> authHeaders() {
+    final token = _tokenProvider().accessToken;
+    return token.isEmpty ? const {} : {'Authorization': 'Bearer $token'};
   }
 
   Future<Order> cancelOrder(String orderId) async {
