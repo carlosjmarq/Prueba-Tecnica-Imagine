@@ -210,6 +210,7 @@ class _MyOrderCard extends ConsumerStatefulWidget {
 
 class _MyOrderCardState extends ConsumerState<_MyOrderCard> {
   bool _busy = false;
+  double? _progress;
 
   Order get order => widget.order;
 
@@ -222,7 +223,10 @@ class _MyOrderCardState extends ConsumerState<_MyOrderCard> {
     };
     if (next == null) return;
 
-    setState(() => _busy = true);
+    setState(() {
+      _busy = true;
+      _progress = null;
+    });
     try {
       // El comprobante de entrega es obligatorio en la app al marcar DELIVERED.
       String? proofKey;
@@ -262,17 +266,28 @@ class _MyOrderCardState extends ConsumerState<_MyOrderCard> {
     final picked = await ImagePicker().pickImage(
       source: ImageSource.gallery,
       maxWidth: 1080,
+      maxHeight: 1920,
       imageQuality: 70,
     );
     if (picked == null) return null;
-    final bytes = await picked.readAsBytes();
+    final original = await picked.readAsBytes();
+    final compressed = await compressImage(original);
+    final isWebp = compressed.length < original.length;
+    final ct =
+        isWebp ? 'image/webp' : (picked.mimeType ?? _guessMime(picked.name));
     try {
-      final upload = await ref.read(apiClientProvider).uploadImage(
-            bytes: bytes,
-            filename: picked.name,
-            contentType: picked.mimeType ?? _guessMime(picked.name),
-          );
-      return upload.key;
+      final api = ref.read(apiClientProvider);
+      final presigned = await api.presignUpload(contentType: ct);
+      await api.uploadDirect(
+        url: presigned.url,
+        bytes: compressed,
+        contentType: ct,
+        onSendProgress: (sent, total) {
+          if (total <= 0) return;
+          setState(() => _progress = sent / total);
+        },
+      );
+      return presigned.key;
     } catch (e) {
       messenger.showSnackBar(
         SnackBar(
@@ -365,6 +380,16 @@ class _MyOrderCardState extends ConsumerState<_MyOrderCard> {
                         ),
                 ),
               ),
+              if (_progress != null) ...[
+                const SizedBox(height: 8),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: LinearProgressIndicator(
+                    value: _progress,
+                    minHeight: 6,
+                  ),
+                ),
+              ],
             ],
           ],
         ),

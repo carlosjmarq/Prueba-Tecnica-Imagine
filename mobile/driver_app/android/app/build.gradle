@@ -56,3 +56,11 @@ android {
 flutter {
     source = "../.."
 }
+
+// Workaround: D8 (AGP 8.1) lanza NPE al dexear androidx.exifinterface:1.4.2
+// (dependencia transitiva de flutter_image_compress). Se fuerza 1.3.7.
+configurations.all {
+    resolutionStrategy {
+        force 'androidx.exifinterface:exifinterface:1.3.7'
+    }
+}
