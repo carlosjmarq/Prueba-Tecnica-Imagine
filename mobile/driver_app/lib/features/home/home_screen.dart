@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:shared/shared.dart';
 
+import '../../core/providers.dart';
 import '../auth/auth_providers.dart';
 import '../orders/order_providers.dart';
 
@@ -202,9 +204,27 @@ class _MyOrderCard extends ConsumerWidget {
       _ => null,
     };
     if (next == null) return;
+
+    // El comprobante de entrega es obligatorio en la app al marcar DELIVERED.
+    String? proofKey;
+    if (next == 'DELIVERED') {
+      proofKey = await _pickAndUploadProof(context, ref);
+      if (proofKey == null) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Debes adjuntar el comprobante de entrega'),
+              backgroundColor: AppColors.destructive,
+            ),
+          );
+        }
+        return;
+      }
+    }
+
     final ok = await ref
         .read(orderActionControllerProvider.notifier)
-        .updateStatus(order.id, next);
+        .updateStatus(order.id, next, deliveryProofKey: proofKey);
     if (!ok && context.mounted) {
       final err = ref.read(orderActionControllerProvider);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -215,6 +235,43 @@ class _MyOrderCard extends ConsumerWidget {
         ),
       );
     }
+  }
+
+  Future<String?> _pickAndUploadProof(
+      BuildContext context, WidgetRef ref) async {
+    final picked = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1280,
+      imageQuality: 85,
+    );
+    if (picked == null) return null;
+    final bytes = await picked.readAsBytes();
+    try {
+      final upload = await ref.read(apiClientProvider).uploadImage(
+            bytes: bytes,
+            filename: picked.name,
+            contentType: picked.mimeType ?? _guessMime(picked.name),
+          );
+      return upload.key;
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content:
+                Text('Error subiendo comprobante: ${ApiClient.mapError(e)}'),
+            backgroundColor: AppColors.destructive,
+          ),
+        );
+      }
+      return null;
+    }
+  }
+
+  String _guessMime(String name) {
+    final lower = name.toLowerCase();
+    if (lower.endsWith('.png')) return 'image/png';
+    if (lower.endsWith('.webp')) return 'image/webp';
+    return 'image/jpeg';
   }
 
   @override
@@ -261,6 +318,16 @@ class _MyOrderCard extends ConsumerWidget {
             const SizedBox(height: 8),
             Text(
                 '${formatMoney(order.totalAmount)}  |  ${order.items.length} item(s)'),
+            if (order.deliveryProofKey != null) ...[
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  _RemoteImage(imageKey: order.deliveryProofKey!, size: 48),
+                  const SizedBox(width: 8),
+                  Text('Comprobante adjunto', style: theme.textTheme.bodySmall),
+                ],
+              ),
+            ],
             if (canAdvance) ...[
               const SizedBox(height: 12),
               SizedBox(
@@ -276,6 +343,36 @@ class _MyOrderCard extends ConsumerWidget {
               ),
             ],
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Miniatura de una imagen servida por el proxy autenticado del backend.
+class _RemoteImage extends ConsumerWidget {
+  const _RemoteImage({required this.imageKey, required this.size});
+
+  final String imageKey;
+  final double size;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final api = ref.watch(apiClientProvider);
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: Image.network(
+        api.imageUrl(imageKey),
+        headers: api.authHeaders(),
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => Container(
+          width: size,
+          height: size,
+          color: AppColors.muted,
+          child: const Icon(Icons.broken_image_outlined,
+              size: 20, color: AppColors.secondary),
         ),
       ),
     );

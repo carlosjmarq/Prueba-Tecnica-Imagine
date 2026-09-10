@@ -52,11 +52,19 @@ class OrderActionController extends StateNotifier<AsyncValue<Order?>> {
     }
   }
 
-  Future<bool> updateStatus(String orderId, String status) async {
+  Future<bool> updateStatus(
+    String orderId,
+    String status, {
+    String? deliveryProofKey,
+  }) async {
     state = const AsyncValue.loading();
     try {
       final api = _ref.read(apiClientProvider);
-      await api.updateOrderStatus(orderId, status);
+      await api.updateOrderStatus(
+        orderId,
+        status,
+        deliveryProofKey: deliveryProofKey,
+      );
       state = const AsyncValue.data(null);
       _ref.invalidate(availableOrdersProvider);
       _ref.invalidate(myOrdersProvider);
