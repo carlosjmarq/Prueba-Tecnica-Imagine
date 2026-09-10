@@ -33,15 +33,22 @@ class OrderSocket {
     if (token.isEmpty) return;
     final uri = Uri.parse('$wsUrl/ws/orders?token=$token');
     try {
-      _channel = WebSocketChannel.connect(uri);
-      _channel!.stream.listen(
+      final channel = WebSocketChannel.connect(uri);
+      _channel = channel;
+      // El handshake falla (p. ej. 403 por token expirado) en `ready`;
+      // hay que capturarlo o queda como excepcion no manejada.
+      channel.ready.then((_) {
+        _attempt = 0;
+        _startHeartbeat();
+      }).catchError((_) {
+        _scheduleRetry();
+      });
+      channel.stream.listen(
         _onMessage,
         onError: (_) => _scheduleRetry(),
         onDone: _scheduleRetry,
         cancelOnError: true,
       );
-      _attempt = 0;
-      _startHeartbeat();
     } catch (_) {
       _scheduleRetry();
     }
@@ -103,16 +110,20 @@ class OrderSocket {
     _cancelChannel();
     if (_disposed) return;
     _attempt++;
-    final delay = Duration(seconds: _attempt <= 1 ? 1 : 5);
+    // Backoff exponencial con tope de 30s (evita tormentas de reconexion).
+    final seconds =
+        _attempt <= 1 ? 1 : (1 << (_attempt - 1)).clamp(1, 30).toInt();
     _retryTimer?.cancel();
-    _retryTimer = Timer(delay, connect);
+    _retryTimer = Timer(Duration(seconds: seconds), connect);
   }
 
   void _cancelChannel() {
-    try {
-      _channel?.sink.close();
-    } catch (_) {}
+    final channel = _channel;
     _channel = null;
+    if (channel == null) return;
+    try {
+      channel.sink.close().ignore();
+    } catch (_) {}
   }
 
   Future<void> disconnect() async {

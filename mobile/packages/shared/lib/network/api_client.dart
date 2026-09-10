@@ -50,15 +50,18 @@ class ApiClient {
     required this.config,
     required AuthSession Function() tokenProvider,
     required Future<TokenPair> Function(String refreshToken) refreshCall,
+    void Function(AuthSession session)? onSessionRefreshed,
     Dio? dio,
   })  : _tokenProvider = tokenProvider,
         _refreshCall = refreshCall,
+        _onSessionRefreshed = onSessionRefreshed,
         _dio = dio ??
             Dio(
               BaseOptions(
                 baseUrl: config.baseUrl,
-                connectTimeout: const Duration(seconds: 10),
-                receiveTimeout: const Duration(seconds: 15),
+                connectTimeout: const Duration(seconds: 15),
+                sendTimeout: const Duration(seconds: 60),
+                receiveTimeout: const Duration(seconds: 30),
               ),
             ) {
     _dio.interceptors.add(
@@ -96,7 +99,9 @@ class ApiClient {
   final ApiConfig config;
   final AuthSession Function() _tokenProvider;
   final Future<TokenPair> Function(String refreshToken) _refreshCall;
+  final void Function(AuthSession session)? _onSessionRefreshed;
   final Dio _dio;
+  Future<String?>? _refreshInFlight;
 
   Future<TokenPair> login(String email, String password) async {
     final res = await _dio.post<Map<String, dynamic>>(
@@ -195,24 +200,47 @@ class ApiClient {
   }
 
   /// Sube una imagen y devuelve su key + url (multipart/form-data).
+  /// Reintenta ante fallos transitorios (timeout / red / 5xx).
   Future<UploadResult> uploadImage({
     required List<int> bytes,
     required String filename,
     String? contentType,
   }) async {
-    final form = FormData.fromMap({
-      'file': MultipartFile.fromBytes(
-        bytes,
-        filename: filename,
-        contentType:
-            contentType == null ? null : DioMediaType.parse(contentType),
-      ),
-    });
-    final res = await _dio.post<Map<String, dynamic>>(
-      '/api/v1/uploads/images',
-      data: form,
-    );
-    return UploadResult.fromJson(res.data!);
+    FormData buildForm() => FormData.fromMap({
+          'file': MultipartFile.fromBytes(
+            bytes,
+            filename: filename,
+            contentType:
+                contentType == null ? null : DioMediaType.parse(contentType),
+          ),
+        });
+    Object? lastError;
+    for (var attempt = 0; attempt < 3; attempt++) {
+      try {
+        final res = await _dio.post<Map<String, dynamic>>(
+          '/api/v1/uploads/images',
+          data: buildForm(),
+        );
+        return UploadResult.fromJson(res.data!);
+      } catch (e) {
+        lastError = e;
+        if (!_isRetryable(e) || attempt == 2) rethrow;
+        await Future<void>.delayed(Duration(milliseconds: 500 * (attempt + 1)));
+      }
+    }
+    throw lastError!;
+  }
+
+  bool _isRetryable(Object error) {
+    if (error is! DioException) return false;
+    return switch (error.type) {
+      DioExceptionType.connectionTimeout ||
+      DioExceptionType.sendTimeout ||
+      DioExceptionType.receiveTimeout ||
+      DioExceptionType.connectionError =>
+        true,
+      _ => (error.response?.statusCode ?? 0) >= 500,
+    };
   }
 
   /// URL del proxy autenticado de imagenes para un key de StorageService.
@@ -237,7 +265,17 @@ class ApiClient {
     );
   }
 
-  Future<String?> _tryRefresh() async {
+  /// Renueva la sesion si es posible (deduplicado). Expuesto para el WS.
+  Future<bool> ensureFreshToken() async => (await _tryRefresh()) != null;
+
+  /// Una sola renovacion en vuelo: evita que 401 concurrentes roten el mismo
+  /// refresh token y que uno de ellos invalide la sesion.
+  Future<String?> _tryRefresh() {
+    return _refreshInFlight ??=
+        _doRefresh().whenComplete(() => _refreshInFlight = null);
+  }
+
+  Future<String?> _doRefresh() async {
     final session = _tokenProvider();
     final refresh = session.refreshToken;
     if (refresh == null) return null;
@@ -245,6 +283,7 @@ class ApiClient {
       final pair = await _refreshCall(refresh);
       session.accessToken = pair.accessToken;
       session.refreshToken = pair.refreshToken;
+      _onSessionRefreshed?.call(session);
       return pair.accessToken;
     } catch (_) {
       session.accessToken = '';
