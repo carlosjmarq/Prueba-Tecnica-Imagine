@@ -52,10 +52,7 @@ CustomerDep = Annotated[User, Depends(require_customer)]
 DriverDep = Annotated[User, Depends(require_driver)]
 
 
-async def get_current_user_ws(
-    websocket: WebSocket,
-    session: Annotated[AsyncSession, Depends(get_session)],
-) -> User:
+async def get_current_user_ws(websocket: WebSocket) -> User:
     token = websocket.query_params.get("token")
     if not token:
         raise WebSocketException(code=status.WS_1008_POLICY_VIOLATION, reason="Token requerido")
@@ -67,7 +64,13 @@ async def get_current_user_ws(
         raise WebSocketException(
             code=status.WS_1008_POLICY_VIOLATION, reason="Token invalido"
         ) from None
-    user = await session.get(User, UUID(cast(str, payload["sub"])))
+    # Sesion de corta vida: se cierra antes del loop para no retener conexion del pool.
+    session_gen = websocket.app.dependency_overrides.get(get_session, get_session)()
+    session: AsyncSession = await anext(session_gen)
+    try:
+        user = await session.get(User, UUID(cast(str, payload["sub"])))
+    finally:
+        await session_gen.aclose()
     if user is None:
         raise WebSocketException(
             code=status.WS_1008_POLICY_VIOLATION, reason="Usuario no encontrado"
