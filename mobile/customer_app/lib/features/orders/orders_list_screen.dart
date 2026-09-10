@@ -38,10 +38,19 @@ class _OrdersListScreenState extends ConsumerState<OrdersListScreen> {
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
             child: SegmentedButton<bool>(
               segments: const [
-                ButtonSegment(value: false, label: Text('Activos')),
-                ButtonSegment(value: true, label: Text('Completados')),
+                ButtonSegment(
+                  value: false,
+                  label: SizedBox(
+                      width: 110, child: Center(child: Text('Activos'))),
+                ),
+                ButtonSegment(
+                  value: true,
+                  label: SizedBox(
+                      width: 110, child: Center(child: Text('Completados'))),
+                ),
               ],
               selected: {_completed},
+              showSelectedIcon: false,
               onSelectionChanged: (selection) =>
                   setState(() => _completed = selection.first),
             ),

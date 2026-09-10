@@ -17,6 +17,14 @@ final apiClientProvider = Provider<ApiClient>((ref) {
       final res = await DioAuth.refresh(refreshToken);
       return res;
     },
+    // Al refrescar, reemplaza la sesión (nuevo objeto) para que providers que
+    // la observan (p. ej. el WebSocket) se reconstruyan con el token nuevo.
+    onSessionRefreshed: (session) {
+      ref.read(authSessionProvider.notifier).state = AuthSession(
+        accessToken: session.accessToken,
+        refreshToken: session.refreshToken,
+      );
+    },
   );
 });
 
