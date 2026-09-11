@@ -62,7 +62,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          flutter-version: "3.22.1"
       - name: Test customer_app
         working-directory: mobile/customer_app
         run: |
@@ -98,7 +98,7 @@ jobs:
       - name: Tofu fmt
         run: tofu fmt -check -recursive terraform
       - name: Tofu validate
-        working-directory: terraform/envs/dev
+        working-directory: infra/terraform/envs/dev
         run: |
           tofu init -backend=false
           tofu validate
