@@ -24,6 +24,7 @@ imagine-delivery/
 │   ├── setup.ps1          # Fase 0: instala el toolchain completo
 │   ├── dev.ps1            # Levanta todo el proyecto (infra + migraciones + API)
 │   ├── apps.ps1           # Lanza las apps Flutter (customer y/o driver)
+│   ├── seed.ps1           # Mock data bajo demanda (dev/prod)
 │   ├── verify.ps1         # Verifica el toolchain
 │   └── insomnia/          # Colección de Insomnia para probar la API
 └── .github/workflows/     # CI con filtros por path
@@ -65,6 +66,17 @@ powershell -ExecutionPolicy Bypass -File scripts\apps.ps1
 ```
 
 La API queda en `http://127.0.0.1:8000` (Swagger en `/docs`). Para probar los endpoints con Insomnia, importar `scripts/insomnia/delivery-api-insomnia.json` (colección con request chaining: el login alimenta el token de los pedidos).
+
+## Datos de prueba (mock data)
+
+`dev.ps1` aplica migraciones (incluye el seed). Si no, sembrar bajo demanda:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\seed.ps1 -Env dev   # BD local
+powershell -ExecutionPolicy Bypass -File scripts\seed.ps1 -Env prod  # entorno AWS (pide confirmación)
+```
+
+Usuarios demo (password `password123`): `customer1@`, `customer2@`, `driver1@`, `driver2@example.com`. El deploy (`deploy-aws.ps1`) incluye la etapa `seed`; usar `-NoSeed` para deshabilitarla. Más detalle en `docs/20 Tecnico/Seed de datos`.
 
 ## Documentación (vault Obsidian)
 

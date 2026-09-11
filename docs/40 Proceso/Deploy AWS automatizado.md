@@ -18,10 +18,11 @@ date: 2026-09-10
 | `bootstrap`| State bucket S3 + tabla DynamoDB de lock (idempotente)          | AWS CLI    |
 | `lambda`   | Empaqueta el zip de `order-timeout-canceller` (pg8000)          | Python     |
 | `apply`    | `tofu init` + `plan` + `apply` (crea VPC/RDS/S3/EC2/Lambda...)  | OpenTofu   |
-| `image`    | `docker login` ECR + build + push de la API                     | **Docker** |
-| `refresh`  | Instance refresh del ASG para que tome la imagen nueva          | AWS CLI    |
-| `migrate`  | `alembic upgrade head` vía SSM Run Command en la instancia      | AWS CLI    |
-| `check`    | Compara AWS actual contra el baseline                            | AWS CLI    |
+| `image`    | `docker login` ECR + build + push de la API                          | **Docker** |
+| `refresh`  | Instance refresh del ASG para que tome la imagen nueva                | AWS CLI    |
+| `migrate`  | `alembic upgrade head` vía SSM Run Command en la instancia            | AWS CLI    |
+| `seed`     | Mock data (`alembic upgrade head`, idempotente) vía SSM — ver [[Seed de datos]] | AWS CLI |
+| `check`    | Compara AWS actual contra el baseline                                 | AWS CLI    |
 
 ## Uso
 
@@ -39,6 +40,8 @@ pwsh -File scripts/deploy-aws.ps1 apply      # solo terraform apply
 # Flags utiles
 pwsh -File scripts/deploy-aws.ps1 deploy -AutoApprove   # sin confirmar
 pwsh -File scripts/deploy-aws.ps1 deploy -Skip image    # si Docker no esta disponible
+pwsh -File scripts/deploy-aws.ps1 deploy -NoSeed        # no sembrar mock data (migrate corre solo esquema)
+pwsh -File scripts/deploy-aws.ps1 seed                  # sembrar mock data on-demand
 pwsh -File scripts/deploy-aws.ps1 refresh -Only refresh # una sola etapa
 ```
 
@@ -90,6 +93,7 @@ Flutter **3.22.1** pinned, infra `tofu validate`) y CD completo verde
   - Job mobile pinea **Flutter 3.22.1** (el código usa APIs de Dart 3.4; el stable 3.47 rompía con `CardTheme`/`google_fonts`).
   - Job infra corregido: `tofu validate` con `working-directory: infra/terraform/envs/dev`.
   - `ensure_bucket` en `StorageService` tolera que MinIO no implemente `PutPublicAccessBlock` (best-effort).
+- **Seed (2026-09-11)**: el pipeline incluye la etapa `seed` (mock data, idempotente). `-NoSeed` la omite y hace que `migrate` suba solo al head de esquema (`a1b2c3d4e5f6`). Tras sembrar, refrescar el baseline con `state`; un deploy `-NoSeed` mostrará drift esperado. Ver [[Seed de datos]].
 
 ## Relaciones
 

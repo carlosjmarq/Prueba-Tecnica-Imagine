@@ -51,6 +51,7 @@ date: 2026-09-08
 - [x] Repositorio(s) Git ([[ADR-008 Monorepo unico]]; ver también [[ADR-002 Estructura multi-repositorio]])
 - [x] README con instrucciones (cada repo)
 - [x] Migraciones
+- [x] Mock data sembrable dev/prod ([[Seed de datos]])
 - [x] Diagrama de arquitectura
 - [ ] Video opcional ≤ 5 min ([[Guion video]])
 

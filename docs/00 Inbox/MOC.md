@@ -35,6 +35,7 @@ Map of Content del vault. Desde aquí se navega toda la documentación del proye
 - [[Realtime]]
 - [[StorageService]]
 - [[Design System de las apps]]
+- [[Seed de datos]]
 - [[Testing y calidad]]
 
 ## Infraestructura (30 Infraestructura)
