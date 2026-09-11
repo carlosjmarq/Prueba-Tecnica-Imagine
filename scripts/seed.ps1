@@ -9,24 +9,29 @@
 #   powershell -ExecutionPolicy Bypass -File scripts/seed.ps1 -Env dev
 #   powershell -ExecutionPolicy Bypass -File scripts/seed.ps1 -Env prod      # pide confirmacion
 #   powershell -ExecutionPolicy Bypass -File scripts/seed.ps1 -Env prod -Force
+#   powershell -ExecutionPolicy Bypass -File scripts/seed.ps1 -Env prod -Reseed   # borra y re-siembra
 #   powershell -ExecutionPolicy Bypass -File scripts/seed.ps1 -Env prod -Environment dev -Region eu-west-1
 #
 # Notas:
 #   - En prod debe estar desplegada la imagen que incluya la migracion de seed
 #     (el CD reconstruye la imagen al tocar backend/**).
 #   - Es idempotente: si ya se aplico, no duplica datos.
+#   - -Reseed hace downgrade + upgrade de la migracion de seed para refrescar los
+#     datos (p.ej. los pedidos PENDING que la Lambda de timeout cancela a los 15 min).
 
 param(
     [ValidateSet("dev", "prod")]
     [string]$Env = "dev",
     [string]$Environment = "dev",
     [string]$Region = "eu-west-1",
-    [switch]$Force
+    [switch]$Force,
+    [switch]$Reseed
 )
 
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
 $backend = Join-Path $root "backend"
+$schemaHead = "a1b2c3d4e5f6"   # down_revision de la migracion de seed
 
 function Write-Step([string]$Msg) { Write-Host "`n== $Msg ==" -ForegroundColor Cyan }
 function Write-Ok([string]$Msg) { Write-Host "  [ok] $Msg" -ForegroundColor Green }
@@ -40,6 +45,10 @@ if ($Env -eq "dev") {
     Write-Step "seed (dev) - alembic upgrade head en BD local"
     Push-Location $backend
     try {
+        if ($Reseed) {
+            uv run alembic downgrade $schemaHead
+            if ($LASTEXITCODE -ne 0) { throw "alembic downgrade fallo" }
+        }
         uv run alembic upgrade head
         if ($LASTEXITCODE -ne 0) { throw "alembic upgrade head fallo (BD local levantada? -> scripts/dev.ps1)" }
     }
@@ -72,7 +81,12 @@ if ($LASTEXITCODE -ne 0 -or -not $instanceId -or $instanceId -eq "None") {
     exit 1
 }
 
-$params = @{ commands = @("docker exec api alembic upgrade head") } | ConvertTo-Json -Compress
+$commands = if ($Reseed) {
+    @("docker exec api alembic downgrade $schemaHead && docker exec api alembic upgrade head")
+} else {
+    @("docker exec api alembic upgrade head")
+}
+$params = @{ commands = $commands } | ConvertTo-Json -Compress
 $paramsFile = Join-Path $env:TEMP "ssm-seed.json"
 Set-Content -Path $paramsFile -Value $params -NoNewline -Encoding ascii
 

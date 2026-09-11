@@ -434,6 +434,11 @@ def upgrade() -> None:
     if already:
         return
 
+    # Los pedidos PENDING nacen con timestamp actual: la Lambda de timeout
+    # (order-timeout-canceller) cancela los PENDING con created_at antiguo.
+    now = datetime.now(UTC)
+    pending_ids = {o["id"] for o in ORDERS if o["status"] == "PENDING"}
+
     op.bulk_insert(
         _users_table(),
         [
@@ -452,8 +457,8 @@ def upgrade() -> None:
             {
                 **o,
                 "delivery_proof_key": o.get("delivery_proof_key"),
-                "created_at": _dt(o["created_at"]),
-                "updated_at": _dt(o["created_at"]),
+                "created_at": now if o["id"] in pending_ids else _dt(o["created_at"]),
+                "updated_at": now if o["id"] in pending_ids else _dt(o["created_at"]),
             }
             for o in ORDERS
         ],
@@ -461,7 +466,17 @@ def upgrade() -> None:
     op.bulk_insert(_items_table(), ITEMS)
     op.bulk_insert(
         _history_table(),
-        [{**h, "changed_at": _dt(h["changed_at"])} for h in HISTORY],
+        [
+            {
+                **h,
+                "changed_at": (
+                    now
+                    if h["order_id"] in pending_ids and h["from_status"] is None
+                    else _dt(h["changed_at"])
+                ),
+            }
+            for h in HISTORY
+        ],
     )
 
 
