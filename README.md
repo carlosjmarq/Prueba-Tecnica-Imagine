@@ -23,6 +23,7 @@ imagine-delivery/
 ├── scripts/
 │   ├── setup.ps1          # Fase 0: instala el toolchain completo
 │   ├── dev.ps1            # Levanta todo el proyecto (infra + migraciones + API)
+│   ├── apps.ps1           # Lanza las apps Flutter (customer y/o driver)
 │   ├── verify.ps1         # Verifica el toolchain
 │   └── insomnia/          # Colección de Insomnia para probar la API
 └── .github/workflows/     # CI con filtros por path
@@ -51,7 +52,12 @@ powershell -ExecutionPolicy Bypass -File scripts\setup.ps1
 powershell -ExecutionPolicy Bypass -File scripts\dev.ps1          # con hot reload: -Reload
 #   Detener todo: powershell -ExecutionPolicy Bypass -File scripts\dev.ps1 -Stop
 
-# 3. Ejecutar las fases con los comandos de opencode: /backend, /apps, ...
+# 3. Lanzar las apps Flutter (customer y driver, cada una en su ventana)
+powershell -ExecutionPolicy Bypass -File scripts\apps.ps1
+#   Solo una app: -App customer | -App driver
+#   Emulador Android: apuntar al host con -ApiUrl http://10.0.2.2:8000
+
+# 4. Ejecutar las fases con los comandos de opencode: /backend, /apps, ...
 ```
 
 La API queda en `http://127.0.0.1:8000` (Swagger en `/docs`). Para probar los endpoints con Insomnia, importar `scripts/insomnia/delivery-api-insomnia.json` (colección con request chaining: el login alimenta el token de los pedidos).

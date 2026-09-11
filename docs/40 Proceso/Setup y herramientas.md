@@ -54,6 +54,14 @@ powershell -ExecutionPolicy Bypass -File scripts/dev.ps1     # -Reload para hot 
 powershell -ExecutionPolicy Bypass -File scripts/dev.ps1 -Stop   # detiene todo
 ```
 
+Lanzar las apps Flutter (customer y driver, cada una en su ventana):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/apps.ps1            # ambas
+powershell -ExecutionPolicy Bypass -File scripts/apps.ps1 -App customer
+powershell -ExecutionPolicy Bypass -File scripts/apps.ps1 -ApiUrl http://10.0.2.2:8000  # emulador Android
+```
+
 Probar S3 local con MinIO: `http://localhost:9001` (consola, minioadmin/minioadmin).
 
 Colección de Insomnia para probar la API: importar `scripts/insomnia/delivery-api-insomnia.json`
