@@ -74,6 +74,7 @@ La API queda en `http://127.0.0.1:8000` (Swagger en `/docs`). Para probar los en
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\seed.ps1 -Env dev   # BD local
 powershell -ExecutionPolicy Bypass -File scripts\seed.ps1 -Env prod  # entorno AWS (pide confirmación)
+powershell -ExecutionPolicy Bypass -File scripts\seed.ps1 -Env prod -Reseed -Force   # reponer datos
 ```
 
 Usuarios demo (password `password123`): `customer1@`, `customer2@`, `driver1@`, `driver2@example.com`. El deploy (`deploy-aws.ps1`) incluye la etapa `seed`; usar `-NoSeed` para deshabilitarla. Más detalle en `docs/20 Tecnico/Seed de datos`.

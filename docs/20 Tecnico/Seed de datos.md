@@ -31,9 +31,12 @@ powershell -ExecutionPolicy Bypass -File scripts/seed.ps1 -Env dev
 # Producción (entorno AWS desplegado): pide confirmación
 powershell -ExecutionPolicy Bypass -File scripts/seed.ps1 -Env prod
 powershell -ExecutionPolicy Bypass -File scripts/seed.ps1 -Env prod -Force
+
+# Refrescar los datos (downgrade + upgrade): útil para reponer pedidos PENDING
+powershell -ExecutionPolicy Bypass -File scripts/seed.ps1 -Env prod -Reseed -Force
 ```
 
-En prod se ejecuta vía SSM (`docker exec api alembic upgrade head`) sobre la instancia del ASG, igual que las migraciones de esquema. **Requiere la imagen desplegada que incluya la migración** (el CD reconstruye la imagen al tocar `backend/**`).
+En prod se ejecuta vía SSM (`docker exec api alembic upgrade head`) sobre la instancia del ASG, igual que las migraciones de esquema. **Requiere la imagen desplegada que incluya la migración** (el CD reconstruye la imagen al tocar `backend/**`); si la instancia aún corre la imagen vieja, ejecutar antes `deploy-aws.ps1 refresh`.
 
 ### Como parte del deploy (`scripts/deploy-aws.ps1`)
 
@@ -46,6 +49,13 @@ En prod se ejecuta vía SSM (`docker exec api alembic upgrade head`) sobre la in
 - **Idempotente**: `alembic upgrade head` solo aplica la migración una vez (queda en `alembic_version`); si se re-ejecuta no duplica datos.
 - **Dev y CI se siembran solos**: `dev.ps1` y `conftest.py` ejecutan `alembic upgrade head`; los tests truncan las tablas entre test (sin conflictos).
 - **Downgrade**: `alembic downgrade a1b2c3d4e5f6` limpia únicamente las filas de seed.
+- **Pedidos PENDING y la Lambda de timeout**: los pedidos `PENDING` del seed nacen con timestamp **actual** para que estén disponibles; aun así, la Lambda `order-timeout-canceller` (timeout 15 min, ver [[Lambda]]) los cancela pasados ~15 min. Para reponerlos, re-sembrar con `-Reseed`.
+
+## Verificado en producción (2026-09-11)
+
+- `seed.ps1 -Env prod` aplicado vía SSM; login de `customer1@example.com`/`customer2@example.com` (`password123`) OK.
+- Pedidos por cliente: customer1 → `PENDING`, `ACCEPTED`, `PICKED_UP`; customer2 → `PENDING`, `CANCELLED`, `DELIVERED`.
+- `deploy-aws.ps1 check` sin drift tras refrescar el baseline con `state`.
 
 ## Baseline de `check`
 

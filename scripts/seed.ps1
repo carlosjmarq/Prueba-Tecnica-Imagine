@@ -28,13 +28,14 @@ param(
     [switch]$Reseed
 )
 
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = "Continue"
 $root = Split-Path -Parent $PSScriptRoot
 $backend = Join-Path $root "backend"
 $schemaHead = "a1b2c3d4e5f6"   # down_revision de la migracion de seed
 
 function Write-Step([string]$Msg) { Write-Host "`n== $Msg ==" -ForegroundColor Cyan }
 function Write-Ok([string]$Msg) { Write-Host "  [ok] $Msg" -ForegroundColor Green }
+function Write-WarnMsg([string]$Msg) { Write-Host "  [warn] $Msg" -ForegroundColor Yellow }
 
 # ------------------------------------------------------------------ dev
 if ($Env -eq "dev") {
@@ -81,21 +82,24 @@ if ($LASTEXITCODE -ne 0 -or -not $instanceId -or $instanceId -eq "None") {
     exit 1
 }
 
-$commands = if ($Reseed) {
-    @("docker exec api alembic downgrade $schemaHead && docker exec api alembic upgrade head")
+$commands = @(if ($Reseed) {
+    "docker exec api alembic downgrade $schemaHead && docker exec api alembic upgrade head"
 } else {
-    @("docker exec api alembic upgrade head")
-}
+    "docker exec api alembic upgrade head"
+})
 $params = @{ commands = $commands } | ConvertTo-Json -Compress
 $paramsFile = Join-Path $env:TEMP "ssm-seed.json"
 Set-Content -Path $paramsFile -Value $params -NoNewline -Encoding ascii
 
-$cmdId = aws ssm send-command --instance-ids $instanceId `
-    --document-name "AWS-RunShellScript" `
-    --parameters "file://$paramsFile" `
-    --region $Region `
-    --query "Command.CommandId" --output text
-if ($LASTEXITCODE -ne 0) { throw "No se pudo lanzar el comando SSM" }
+$cmdId = $null
+for ($attempt = 1; $attempt -le 5; $attempt++) {
+    $cmdId = (aws ssm send-command --instance-ids $instanceId --document-name "AWS-RunShellScript" --parameters "file://$paramsFile" --region $Region --query "Command.CommandId" --output text 2>$null)
+    if ($LASTEXITCODE -eq 0 -and $cmdId -and $cmdId -ne "None") { break }
+    Write-WarnMsg "SSM no acepto el comando (intento $attempt/5); el agente puede estar inicializando..."
+    Start-Sleep -Seconds 15
+    $cmdId = $null
+}
+if (-not $cmdId) { throw "No se pudo lanzar el comando SSM" }
 Write-Host "  -> comando SSM $cmdId lanzado, esperando..." -ForegroundColor DarkGray
 
 for ($i = 0; $i -lt 30; $i++) {
