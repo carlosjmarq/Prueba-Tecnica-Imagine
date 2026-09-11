@@ -4,6 +4,7 @@ from typing import Any
 from uuid import UUID
 
 import boto3
+from botocore.exceptions import ClientError
 
 from app.core.config import get_settings
 
@@ -71,16 +72,26 @@ class S3StorageService:
         return f"https://{self._bucket}.s3.{settings.s3_region}.amazonaws.com/{key}"
 
     def ensure_bucket(self) -> None:
-        self._client.create_bucket(Bucket=self._bucket)
-        self._client.put_public_access_block(
-            Bucket=self._bucket,
-            PublicAccessBlockConfiguration={
-                "BlockPublicAcls": True,
-                "IgnorePublicAcls": True,
-                "BlockPublicPolicy": True,
-                "RestrictPublicBuckets": True,
-            },
-        )
+        try:
+            self._client.create_bucket(Bucket=self._bucket)
+        except ClientError as exc:
+            code = exc.response.get("Error", {}).get("Code")
+            if code not in {"BucketAlreadyOwnedByYou", "BucketAlreadyExists"}:
+                raise
+        try:
+            self._client.put_public_access_block(
+                Bucket=self._bucket,
+                PublicAccessBlockConfiguration={
+                    "BlockPublicAcls": True,
+                    "IgnorePublicAcls": True,
+                    "BlockPublicPolicy": True,
+                    "RestrictPublicBuckets": True,
+                },
+            )
+        except ClientError:
+            # MinIO no implementa PutPublicAccessBlock (bucket privado por defecto);
+            # en AWS S3 el bloqueo de acceso publico lo aplica Terraform.
+            pass
 
 
 def get_storage() -> S3StorageService:
