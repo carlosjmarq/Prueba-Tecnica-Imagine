@@ -52,6 +52,8 @@ ignore = ["S101"]  # assert permitido en tests
 # Defaults de desarrollo (overriden por .env) no son secretos reales.
 "app/core/config.py" = ["S105"]
 "app/schemas/*" = ["S105"]
+# El hash de seed es un bcrypt de "password123" (mock data), no un secreto real.
+"alembic/versions/*seed_mock_data.py" = ["S105"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["app"]
