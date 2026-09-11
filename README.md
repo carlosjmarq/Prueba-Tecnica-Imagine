@@ -79,6 +79,13 @@ powershell -ExecutionPolicy Bypass -File scripts\seed.ps1 -Env prod -Reseed -For
 
 Usuarios demo (password `password123`): `customer1@`, `customer2@`, `driver1@`, `driver2@example.com`. El deploy (`deploy-aws.ps1`) incluye la etapa `seed`; usar `-NoSeed` para deshabilitarla. Más detalle en `docs/20 Tecnico/Seed de datos`.
 
+## En producción (AWS `eu-west-1`)
+
+- **API pública**: http://delivery-dev-alb-290184693.eu-west-1.elb.amazonaws.com — Swagger en `/docs`
+- **Imágenes (CDN)**: CloudFront `d3b1xgzyfgomor.cloudfront.net` (origen S3 privado con OAC)
+- **Estado de CI/CD**: CI (backend + mobile + infra) y CD (ECR + `tofu apply` vía OIDC) en verde.
+- Detalles de infraestructura: `docs/30 Infraestructura` y `docs/40 Proceso/Deploy AWS automatizado`.
+
 ## Documentación (vault Obsidian)
 
 Toda decisión, funcionalidad e infraestructura se documenta en `docs/` con wikilinks.
@@ -92,4 +99,4 @@ localstack-deploy, obsidian.
 
 ## Prueba técnica
 
-Enunciado y checklist: `docs/40 Proceso/Checklist de la prueba`.
+Enunciado y checklist: `docs/40 Proceso/Checklist de la prueba` (todo completado salvo el video opcional).

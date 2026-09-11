@@ -17,7 +17,7 @@ date: 2026-09-08
 | 2    | Backend         | `/backend`            | ✅     |
 | 3    | Apps móviles    | `/apps`               | ✅     |
 | 4    | Infraestructura | `/infra`              | ✅     |
-| 5    | Entrega         | `/deliver`            | ⬜ (siguiente) |
+| 5    | Entrega         | `/deliver`            | ✅ (salvo video opcional) |
 
 ## Fase 0 — Setup
 
@@ -65,9 +65,10 @@ Instalar y verificar el toolchain ([[Setup y herramientas]]). Salida: tabla de h
 - **Endpoint público API**: http://delivery-dev-alb-290184693.eu-west-1.elb.amazonaws.com (Swagger en `/docs`).
 - **CI/CD verificado verde (2026-09-11)**: CI (backend tests con Postgres+MinIO, mobile analyze+test, infra validate) y CD completo (build/push ECR + `tofu apply` vía OIDC) pasan. Detalles en [[Deploy AWS automatizado]].
 
-## Fase 5 — Entrega
+## Fase 5 — Entrega ✅
 
-- READMEs finales, checklist ([[Checklist de la prueba]]), guion de video ([[Guion video]]).
+- READMEs finales (raíz, backend, apps), checklist completado ([[Checklist de la prueba]]).
+- **Pendiente opcional**: guion de video ([[Guion video]]) — no requerido para la entrega.
 
 ## Reglas
 

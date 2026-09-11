@@ -1,12 +1,12 @@
 ---
 tags: [proceso, checklist, entrega]
-status: borrador
-date: 2026-09-08
+status: entregado
+date: 2026-09-11
 ---
 
 # Checklist de la prueba
 
-> Checklist oficial contra el enunciado de la prueba técnica. Estado actualizado en la Fase 5 ([[Fases del proyecto]]).
+> Checklist oficial contra el enunciado de la prueba técnica. **Completado el 2026-09-11** (Fase 5, [[Fases del proyecto]]). Todos los requerimientos verificados: tests verdes (backend pytest + flutter analyze/test), CI/CD operativos y deploy real en AWS.
 
 ## Requerimientos funcionales
 
@@ -53,7 +53,7 @@ date: 2026-09-08
 - [x] Migraciones
 - [x] Mock data sembrable dev/prod ([[Seed de datos]])
 - [x] Diagrama de arquitectura
-- [ ] Video opcional ≤ 5 min ([[Guion video]])
+- [ ] Video opcional ≤ 5 min ([[Guion video]]) — **no incluido** (opcional)
 
 ## Relaciones
 
