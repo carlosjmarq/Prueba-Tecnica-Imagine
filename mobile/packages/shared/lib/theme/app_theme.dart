@@ -141,12 +141,12 @@ ThemeData buildAppTheme({Brightness brightness = Brightness.light}) {
     ),
     chipTheme: ChipThemeData(
       backgroundColor: AppColors.muted,
-      selectedColor: AppColors.primary.withOpacity(0.15),
+      selectedColor: AppColors.primary.withAlpha(38),
       labelStyle: GoogleFonts.karla(fontSize: 14, color: AppColors.foreground),
     ),
     navigationBarTheme: NavigationBarThemeData(
       backgroundColor: AppColors.surface,
-      indicatorColor: AppColors.primary.withOpacity(0.15),
+      indicatorColor: AppColors.primary.withAlpha(38),
       labelTextStyle: WidgetStateProperty.resolveWith(
         (_) => GoogleFonts.karla(fontSize: 12, fontWeight: FontWeight.w500),
       ),
