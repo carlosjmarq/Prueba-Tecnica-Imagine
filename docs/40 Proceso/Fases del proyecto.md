@@ -63,6 +63,7 @@ Instalar y verificar el toolchain ([[Setup y herramientas]]). Salida: tabla de h
 - **Lambda** ([[Lambda]]): `delivery-order-timeout-canceller` (python3.12, pg8000, VPC, cron cada 5 min) verificada — retorna `{"cancelled": 0}`.
 - GitHub Actions + dockerizado ([[Docker y despliegue]]).
 - **Endpoint público API**: http://delivery-dev-alb-290184693.eu-west-1.elb.amazonaws.com (Swagger en `/docs`).
+- **CI/CD verificado verde (2026-09-11)**: CI (backend tests con Postgres+MinIO, mobile analyze+test, infra validate) y CD completo (build/push ECR + `tofu apply` vía OIDC) pasan. Detalles en [[Deploy AWS automatizado]].
 
 ## Fase 5 — Entrega
 

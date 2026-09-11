@@ -62,11 +62,15 @@ CMD [".venv/bin/uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 
 ### CI (GitHub Actions)
 
-| Repo           | Pipeline                                   |
-| -------------- | ------------------------------------------ |
-| delivery-api   | lint+test → build imagen → push ECR → deploy (SSM/CodeDeploy o ECS) |
-| mobile         | 2 pipelines (customer_app y driver_app): analyze+test → build APK/AppBundle → artifact |
-| infra          | `terraform validate/plan` en PR → `apply` en main (OIDC) |
+`ci.yml` con 3 jobs por filtro de path (commit message `backend`/`mobile`/`infra` o PR):
+
+| Job        | Qué valida                                                                 |
+| ---------- | -------------------------------------------------------------------------- |
+| Backend    | ruff + format + mypy + pytest (levanta Postgres y MinIO con `docker-compose.base.yml` en el runner) |
+| Mobile     | `flutter analyze` + `flutter test` en customer y driver (**Flutter 3.22.1 pinned**) |
+| Infra      | `docker compose config` + `tofu fmt` + `tofu init -backend=false` + `tofu validate` |
+
+`deploy.yml` (CD) con OIDC: detecta cambios por path (`backend/**`, `infra/**`) → build/push a **ECR** → `tofu plan` + `apply` (state remoto). Requiere el rol `github-actions-deploy` y los secrets/vars (ver [[Deploy AWS automatizado]]). **Verificado verde 2026-09-11.**
 
 ### AWS
 
@@ -90,6 +94,7 @@ CMD [".venv/bin/uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 - ECR `delivery-api`, ALB **`delivery-dev-alb`** (HTTP:80 → target group :8000) y ASG `t3.micro` 1–2 con user-data Docker (login ECR + SSM + uvicorn); health `/health` OK.
 - **Endpoint público API**: http://delivery-dev-alb-290184693.eu-west-1.elb.amazonaws.com (Swagger en `/docs`). Flujo completo probado: registro → login → pedido `PENDING`.
 - Correcciones durante el deploy: `Dockerfile` con rutas `./app/` y `./alembic/` + `COPY README.md`; rol EC2 con `AmazonSSMManagedInstanceCore` para leer SSM.
+- **2026-09-11**: CI y CD verificados verdes. El CD (`tofu apply` vía OIDC) aplicó solo 2 cambios in-place (AMI del launch template y Lambda), sin drift. Health `/health` 200.
 
 ## Relaciones
 

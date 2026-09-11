@@ -14,7 +14,7 @@ date: 2026-09-08
 | ------------------- | -------------- | -------------------------------- | ------------------------------- |
 | Python              | 3.12+          | Backend FastAPI                  | winget Python.Python.3.12       |
 | uv                  | 0.5+           | Gestor de dependencias Python    | `pip install uv` o winget       |
-| Flutter SDK         | 3.24+ (stable) | Apps móviles                     | git clone o winget (ver nota)   |
+| Flutter SDK         | 3.22.1 (pinned) | Apps móviles                     | git clone o winget (ver nota)   |
 | Dart                | 3.5+           | Con Flutter                       | incluido en Flutter SDK         |
 | Docker Desktop      | 24+            | PostgreSQL, MinIO, builds        | winget Docker.DockerDesktop     |
 | AWS CLI v2         | 2.x            | Interacción con AWS              | winget Amazon.AWSCLI            |
@@ -73,7 +73,7 @@ Colección de Insomnia para probar la API: importar `scripts/insomnia/delivery-a
 | ----------- | ----------------- | ------ |
 | Python      | 3.12.3            | ✅     |
 | uv          | 0.12.10 (winget)  | ✅ (reiniciar terminal) |
-| Flutter     | SDK en `%LOCALAPPDATA%\flutter` | ✅ |
+| Flutter     | **3.22.1** (SDK en `%LOCALAPPDATA%\flutter`) | ✅ — el CI pinea 3.22.1 (el stable 3.47 rompe `CardTheme`/`google_fonts`; no actualizar sin migrar el código) |
 | Docker      | 29.4.2            | ✅ daemon activo |
 | AWS CLI     | 2.35.5            | ✅ |
 | SSM plugin  | 1.2.835.0         | ✅ (PATH añadido) |

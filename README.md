@@ -42,6 +42,10 @@ imagine-delivery/
 
 Estado en `docs/40 Proceso/Fases del proyecto`.
 
+> **CI/CD**: el CI (backend + mobile + infra) y el CD (ECR + `tofu apply` vía OIDC)
+> están verificados en verde. Requisitos de GitHub: secrets `TF_DB_PASSWORD`/`TF_SNS_EMAIL`,
+> variable `AWS_DEPLOY_ROLE_ARN` y el rol IAM `github-actions-deploy` (ver `docs/40 Proceso/Deploy AWS automatizado`).
+
 ## Primeros pasos
 
 ```powershell

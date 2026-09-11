@@ -60,6 +60,7 @@ La **escritura** usa presigned URLs: el backend firma la URL y el cliente hace `
 - No exponer el bucket: solo CloudFront con OAC/signed URLs o el proxy autenticado.
 - Bucket versionado + lifecycle rules para costes.
 - Al ser la misma implementación S3 en todos los entornos, "carga real a AWS S3" solo exige cambiar `S3_ENDPOINT_URL` y credenciales: el código es idéntico en dev y prod.
+- `ensure_bucket()` hace `PutPublicAccessBlock` **best-effort**: MinIO no lo implementa (MalformedXML) y el bloqueo de acceso público en AWS S3 lo aplica Terraform (ver [[S3 y CloudFront]]).
 
 ## Relaciones
 

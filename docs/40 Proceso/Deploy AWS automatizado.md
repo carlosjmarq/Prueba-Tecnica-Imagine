@@ -56,11 +56,40 @@ pwsh -File scripts/deploy-aws.ps1 refresh -Only refresh # una sola etapa
   - **Volátiles (info)**: ALB DNS, CloudFront domain, RDS endpoint (cambian si se pierde el state).
 - Flujo de validación: `state` antes del re-deploy → `deploy` → `check` sin drift.
 
+## GitHub Actions (CD) — configurado y verificado (2026-09-11)
+
+El CD (`deploy.yml`) asume un rol IAM vía **OIDC** de GitHub. Requisitos ya creados en la cuenta `646364595364`:
+
+| Recurso                     | Valor |
+| --------------------------- | ----- |
+| OIDC provider               | `arn:aws:iam::646364595364:oidc-provider/token.actions.githubusercontent.com` (client-id `sts.amazonaws.com`) |
+| IAM role                   | `github-actions-deploy` (trust OIDC restringido al repo `carlosjmarq/Prueba-Tecnica-Imagine`, policy `AdministratorAccess`) |
+| Secret `TF_DB_PASSWORD`     | password de RDS (mismo valor que `terraform.tfvars`) |
+| Secret `TF_SNS_EMAIL`       | email de alertas SNS |
+| Variable `AWS_DEPLOY_ROLE_ARN` | `arn:aws:iam::646364595364:role/github-actions-deploy` |
+
+> **Nota sobre el `sub` OIDC**: GitHub usa el formato nuevo con IDs
+> (`repo:{owner}@{owner_id}/{repo}@{repo_id}:ref:...`). El trust policy acepta ese
+> formato y el legacy (`repo:carlosjmarq/Prueba-Tecnica-Imagine:*`). Si se renombra
+> el repo o la org, actualizar el trust.
+>
+> **Nota de seguridad**: el rol lleva `AdministratorAccess` por simplicidad en esta
+> prueba; para producción conviene un policy scoped a los recursos del módulo.
+
+Verificación: CI verde (backend tests con Postgres+MinIO, mobile analyze+test con
+Flutter **3.22.1** pinned, infra `tofu validate`) y CD completo verde
+(build/push ECR + `tofu apply` sin drift, 2 cambios in-place: AMI y Lambda).
+
 ## Notas
 
 - El state vive en S3 (`imagine-delivery-tfstate-<account>`), así que un re-deploy sobre el mismo state **preserva** los IDs de recursos.
 - Migraciones Alembic idempotentes: `alembic upgrade head` solo aplica lo pendiente.
 - CI/CD: `deploy.yml` (GitHub Actions) hace build→ECR y `tofu apply` con OIDC; la herramienta local es la vía manual equivalente.
+- **Arreglos de CI detectados en 2026-09-11**:
+  - Job backend ahora levanta Postgres + MinIO con `docker-compose.base.yml` en el runner (los tests requieren `localhost:5434` y `:9000`).
+  - Job mobile pinea **Flutter 3.22.1** (el código usa APIs de Dart 3.4; el stable 3.47 rompía con `CardTheme`/`google_fonts`).
+  - Job infra corregido: `tofu validate` con `working-directory: infra/terraform/envs/dev`.
+  - `ensure_bucket` en `StorageService` tolera que MinIO no implemente `PutPublicAccessBlock` (best-effort).
 
 ## Relaciones
 
