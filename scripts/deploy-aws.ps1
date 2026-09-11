@@ -18,12 +18,14 @@
 #   pwsh -File scripts/deploy-aws.ps1 image               # docker login + build + push ECR
 #   pwsh -File scripts/deploy-aws.ps1 refresh             # instance refresh del ASG
 #   pwsh -File scripts/deploy-aws.ps1 migrate             # alembic upgrade head via SSM
+#   pwsh -File scripts/deploy-aws.ps1 seed                # mock data (alembic upgrade head) via SSM
 #   pwsh -File scripts/deploy-aws.ps1 state               # captura baseline del estado esperado
 #   pwsh -File scripts/deploy-aws.ps1 check               # compara AWS actual vs baseline
 #
 # Flags:
 #   -Environment dev     # nombre del entorno (default: dev)
 #   -AutoApprove         # aplica sin confirmar (tofu apply -auto-approve)
+#   -NoSeed              # no sembrar mock data (omite la etapa seed y migrate corre solo esquema)
 #   -Skip image,migrate  # omite etapas del pipeline
 #   -Only refresh        # ejecuta solo una etapa
 #   -Baseline path.json  # archivo de baseline alternativo para check/state
@@ -31,10 +33,11 @@
 
 [CmdletBinding()]
 param(
-    [ValidateSet("deploy", "verify", "bootstrap", "lambda", "plan", "apply", "image", "refresh", "migrate", "state", "check")]
+    [ValidateSet("deploy", "verify", "bootstrap", "lambda", "plan", "apply", "image", "refresh", "migrate", "seed", "state", "check")]
     [string]$Command = "deploy",
     [string]$Environment = "dev",
     [switch]$AutoApprove,
+    [switch]$NoSeed,
     [string[]]$Skip = @(),
     [string]$Only = "",
     [string]$Baseline = "",
@@ -54,6 +57,11 @@ $script:DefaultBaseline = Join-Path $TfEnv "baseline.json"
 $script:LambdaDir = Join-Path $Root "infra\functions\order_timeout_canceller"
 $script:BackendDir = Join-Path $Root "backend"
 $script:Region = "eu-west-1"
+
+# Revisiones Alembic (mantener al anadir migraciones):
+#   $script:SchemaHead = down_revision de la migracion de seed (head de ESQUEMA).
+#   Con -NoSeed, migrate sube solo hasta este rev (sin mock data).
+$script:SchemaHead = "a1b2c3d4e5f6"
 
 # ---------------------------------------------------------------------------
 # Helpers de salida
@@ -397,10 +405,11 @@ function Get-AsgInstanceId {
 }
 
 function Invoke-Migrate {
-    Write-Step "migrate - alembic upgrade head via SSM"
+    $target = if ($NoSeed) { $script:SchemaHead } else { "head" }
+    Write-Step "migrate - alembic upgrade $target via SSM"
 
     $instanceId = Get-AsgInstanceId
-    $params = @{ commands = @("docker exec api alembic upgrade head") } | ConvertTo-Json -Compress
+    $params = @{ commands = @("docker exec api alembic upgrade $target") } | ConvertTo-Json -Compress
     $paramsFile = Join-Path $env:TEMP "ssm-migrate.json"
     Set-Content -Path $paramsFile -Value $params -NoNewline -Encoding ascii
 
@@ -424,6 +433,40 @@ function Invoke-Migrate {
         Write-Host "  -> estado: $($invObj.Status)" -ForegroundColor DarkGray
     }
     throw "Migraciones agotaron el timeout"
+}
+
+# ---------------------------------------------------------------------------
+# Etapa: seed (mock data, Alembic via SSM) - on-demand; deshabilitable con -NoSeed
+# ---------------------------------------------------------------------------
+
+function Invoke-Seed {
+    Write-Step "seed - alembic upgrade head (mock data) via SSM"
+
+    $instanceId = Get-AsgInstanceId
+    $params = @{ commands = @("docker exec api alembic upgrade head") } | ConvertTo-Json -Compress
+    $paramsFile = Join-Path $env:TEMP "ssm-seed.json"
+    Set-Content -Path $paramsFile -Value $params -NoNewline -Encoding ascii
+
+    $cmdId = aws ssm send-command --instance-ids $instanceId --document-name "AWS-RunShellScript" --parameters "file://$paramsFile" --region $Region --query "Command.CommandId" --output text
+    if ($LASTEXITCODE -ne 0) { throw "No se pudo lanzar el comando SSM" }
+    Write-Host "  -> comando SSM $cmdId lanzado, esperando..." -ForegroundColor DarkGray
+
+    for ($i = 0; $i -lt 30; $i++) {
+        Start-Sleep -Seconds 10
+        $inv = aws ssm get-command-invocation --command-id $cmdId --instance-id $instanceId --region $Region --query "{Status:Status,Out:StandardOutputContent,Err:StandardErrorContent}" --output json 2>$null
+        $invObj = $inv | ConvertFrom-Json
+        if ($invObj.Status -eq "Success") {
+            Write-Host $invObj.Out -ForegroundColor Gray
+            Write-Ok "Mock data sembrado"
+            return
+        }
+        if ($invObj.Status -eq "Failed" -or $invObj.Status -eq "TimedOut" -or $invObj.Status -eq "Cancelled") {
+            Write-Host $invObj.Err -ForegroundColor Red
+            throw "Seed fallo: $($invObj.Status)"
+        }
+        Write-Host "  -> estado: $($invObj.Status)" -ForegroundColor DarkGray
+    }
+    throw "Seed agoto el timeout"
 }
 
 # ---------------------------------------------------------------------------
@@ -688,13 +731,13 @@ function Invoke-Check {
 # ---------------------------------------------------------------------------
 
 function Invoke-Deploy {
-    $stages = @("verify", "bootstrap", "lambda", "apply", "image", "refresh", "migrate", "check")
+    $stages = @("verify", "bootstrap", "lambda", "apply", "image", "refresh", "migrate", "seed", "check")
 
     if ($Only) {
         $stages = @($Only)
     }
     else {
-        $stages = @($stages | Where-Object { $_ -notin $Skip })
+        $stages = @($stages | Where-Object { $_ -notin $Skip -and -not ($_ -eq "seed" -and $NoSeed) })
     }
 
     Write-Host ""
@@ -711,6 +754,7 @@ function Invoke-Deploy {
             "image"     { Invoke-Image }
             "refresh"   { Invoke-Refresh }
             "migrate"   { Invoke-Migrate }
+            "seed"      { Invoke-Seed }
             "check"     { Invoke-Check }
         }
     }
@@ -734,6 +778,7 @@ try {
         "image"     { Invoke-Image }
         "refresh"   { Invoke-Refresh }
         "migrate"   { Invoke-Migrate }
+        "seed"      { Invoke-Seed }
         "state"     { Invoke-State }
         "check"     { Invoke-Check }
     }
